@@ -10,6 +10,7 @@ import { Rulebook } from './components/Rulebook/Rulebook';
 import { PlayerPanel } from './components/PlayerPanel/PlayerPanel';
 import { GameStatus } from './components/GameStatus/GameStatus';
 import { SgfImportDialog } from './components/SgfImportDialog/SgfImportDialog';
+import { BackendStatus } from './components/BackendStatus';
 import { Stone, Color, Position, GameState } from './game/types';
 import { getLastMove } from './game/gameState';
 import { downloadSgf } from './sgf';
@@ -239,6 +240,9 @@ export default function App() {
           onClose={() => setShowSgfImportDialog(false)}
         />
       )}
+
+      {/* Backend Status Indicator - shows connection status to backend API */}
+      <BackendStatus visible={true} />
     </div>
   );
 }
