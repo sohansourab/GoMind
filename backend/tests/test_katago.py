@@ -24,7 +24,7 @@ class TestKataGoModels:
         """Test KataGo configuration model"""
         config = KataGoConfig(
             executable_path="/usr/bin/katago",
-            model_path="/models/model.bin.gz",
+            nn_model_path="/models/model.bin.gz",
             max_visits=100,
             timeout_seconds=30.0
         )
@@ -90,7 +90,7 @@ class TestKataGoProtocol:
         """Test protocol start with invalid executable"""
         config = KataGoConfig(
             executable_path="/nonexistent/katago",
-            model_path="/models/model.bin.gz"
+            nn_model_path="/models/model.bin.gz"
         )
         protocol = KataGoProtocol(config)
         
@@ -102,7 +102,7 @@ class TestKataGoProtocol:
         """Test coordinate conversion"""
         config = KataGoConfig(
             executable_path="/usr/bin/katago",
-            model_path="/models/model.bin.gz"
+            nn_model_path="/models/model.bin.gz"
         )
         protocol = KataGoProtocol(config)
         
@@ -124,7 +124,7 @@ class TestKataGoEngine:
         """Test analysis when engine not running"""
         config = KataGoConfig(
             executable_path="/usr/bin/katago",
-            model_path="/models/model.bin.gz"
+            nn_model_path="/models/model.bin.gz"
         )
         engine = KataGoEngine(config)
         
@@ -143,7 +143,7 @@ class TestKataGoEngine:
         """Test analysis with invalid board size"""
         config = KataGoConfig(
             executable_path="/usr/bin/katago",
-            model_path="/models/model.bin.gz",
+            nn_model_path="/models/model.bin.gz",
             allowed_board_sizes=[9, 13, 19]
         )
         engine = KataGoEngine(config)
@@ -247,7 +247,7 @@ class TestKataGoIntegration:
         
         return KataGoConfig(
             executable_path=executable,
-            model_path=model,
+            nn_model_path=model,
             max_visits=50,  # Lower for tests
             timeout_seconds=60.0
         )

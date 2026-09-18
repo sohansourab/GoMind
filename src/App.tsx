@@ -10,7 +10,6 @@ import { Rulebook } from './components/Rulebook/Rulebook';
 import { PlayerPanel } from './components/PlayerPanel/PlayerPanel';
 import { GameStatus } from './components/GameStatus/GameStatus';
 import { SgfImportDialog } from './components/SgfImportDialog/SgfImportDialog';
-import { BackendStatus } from './components/BackendStatus';
 import { Stone, Color, Position, GameState } from './game/types';
 import { getLastMove } from './game/gameState';
 import { downloadSgf } from './sgf';
@@ -23,10 +22,6 @@ export default function App() {
     reviewBoard,
     lastMoveMessage,
     score,
-    isAiThinking,
-    aiStatus,
-    hintPosition,
-    aiSettings,
     handleIntersectionClick,
     handlePass,
     handleResign,
@@ -36,9 +31,6 @@ export default function App() {
     handleReviewNext,
     handleReviewJumpTo,
     handleExitReview,
-    handleRequestHint,
-    handleClearHint,
-    handleUpdateAiSettings,
   } = useGoGame();
 
   const [showNewGameDialog, setShowNewGameDialog] = useState(false);
@@ -74,7 +66,6 @@ export default function App() {
   }, [gameState, reviewMode]);
 
   const currentPlayerStone = gameState.currentPlayer === Color.BLACK ? Stone.BLACK : Stone.WHITE;
-  const isVsComputer = gameState.playerMode === 'human-vs-computer';
 
   return (
     <div className="app">
@@ -100,18 +91,9 @@ export default function App() {
               onIntersectionClick={handleIntersectionClick}
               lastMovePosition={lastMovePosition}
               currentPlayer={currentPlayerStone}
-              disabled={gameState.isGameOver || reviewMode || isAiThinking}
-              hintPosition={hintPosition}
+              disabled={gameState.isGameOver || reviewMode}
             />
           </div>
-          {isAiThinking && (
-            <div className="ai-thinking-indicator">
-              <span className="thinking-dots">
-                <span></span><span></span><span></span>
-              </span>
-              Computer is thinking
-            </div>
-          )}
           <button
             className="rulebook-icon-btn"
             onClick={() => setShowRulebook(!showRulebook)}
@@ -138,21 +120,15 @@ export default function App() {
           {/* Player Panels */}
           <PlayerPanel
             color={Color.BLACK}
-            label={isVsComputer ? 'You' : 'Black'}
+            label="Black"
             captures={gameState.blackCaptures}
             isActive={!gameState.isGameOver && gameState.currentPlayer === Color.BLACK && !reviewMode}
-            isAiThinking={isAiThinking && gameState.currentPlayer === Color.BLACK}
-            isAi={false}
           />
           <PlayerPanel
             color={Color.WHITE}
-            label={isVsComputer ? 'Satori AI' : 'White'}
+            label="White"
             captures={gameState.whiteCaptures}
             isActive={!gameState.isGameOver && gameState.currentPlayer === Color.WHITE && !reviewMode}
-            isAiThinking={isAiThinking && gameState.currentPlayer === Color.WHITE}
-            isAi={isVsComputer}
-            aiStatus={isVsComputer ? aiStatus : undefined}
-            aiDifficulty={isVsComputer ? gameState.aiDifficulty : undefined}
           />
 
           {/* Game Status */}
@@ -167,18 +143,12 @@ export default function App() {
           <GameControls
             gameState={gameState}
             reviewMode={reviewMode}
-            isAiThinking={isAiThinking}
             onPass={handlePass}
             onResign={handleResign}
             onNewGame={() => setShowNewGameDialog(true)}
             onReviewPrevious={handleReviewPrevious}
             onReviewNext={handleReviewNext}
             onExitReview={handleExitReview}
-            onRequestHint={handleRequestHint}
-            onClearHint={handleClearHint}
-            hintPosition={hintPosition}
-            hintsEnabled={aiSettings.hintsEnabled}
-            isHumanTurn={!isVsComputer || gameState.currentPlayer === Color.BLACK}
             onExportSgf={handleExportSgf}
             onImportSgf={() => setShowSgfImportDialog(true)}
           />
@@ -240,9 +210,6 @@ export default function App() {
           onClose={() => setShowSgfImportDialog(false)}
         />
       )}
-
-      {/* Backend Status Indicator - shows connection status to backend API */}
-      <BackendStatus visible={true} />
     </div>
   );
 }

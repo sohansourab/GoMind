@@ -1,1 +1,0 @@
-"""Satori Backend Application"""

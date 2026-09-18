@@ -4,18 +4,12 @@ import { GameState } from '../../game/types';
 interface GameControlsProps {
   gameState: GameState;
   reviewMode: boolean;
-  isAiThinking: boolean;
   onPass: () => void;
   onResign: () => void;
   onNewGame: () => void;
   onReviewPrevious: () => void;
   onReviewNext: () => void;
   onExitReview: () => void;
-  onRequestHint?: () => void;
-  onClearHint?: () => void;
-  hintPosition?: { x: number; y: number } | null;
-  hintsEnabled?: boolean;
-  isHumanTurn?: boolean;
   onExportSgf?: () => void;
   onImportSgf?: () => void;
 }
@@ -23,24 +17,15 @@ interface GameControlsProps {
 export function GameControls({
   gameState,
   reviewMode,
-  isAiThinking,
   onPass,
   onResign,
   onNewGame,
   onReviewPrevious,
   onReviewNext,
   onExitReview,
-  onRequestHint,
-  onClearHint,
-  hintPosition,
-  hintsEnabled = true,
-  isHumanTurn = true,
   onExportSgf,
   onImportSgf,
 }: GameControlsProps) {
-  const showHintButton = hintsEnabled && !gameState.isGameOver && !reviewMode && isHumanTurn && !isAiThinking;
-  const hasActiveHint = hintPosition !== null;
-
   return (
     <div className="game-controls">
       {!gameState.isGameOver && !reviewMode && (
@@ -48,27 +33,15 @@ export function GameControls({
           <button
             className="btn"
             onClick={onPass}
-            disabled={isAiThinking}
           >
             Pass
           </button>
           <button
             className="btn btn-resign"
             onClick={onResign}
-            disabled={isAiThinking}
           >
             Resign
           </button>
-          {showHintButton && onRequestHint && (
-            <button
-              className={`btn ${hasActiveHint ? 'btn-hint-active' : 'btn-hint'}`}
-              onClick={hasActiveHint && onClearHint ? onClearHint : onRequestHint}
-              disabled={isAiThinking}
-              title={hasActiveHint ? 'Clear hint' : 'Get hint'}
-            >
-              {hasActiveHint ? '✕ Clear' : '💡 Hint'}
-            </button>
-          )}
         </>
       )}
 
