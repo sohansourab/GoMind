@@ -149,19 +149,15 @@ export function Rulebook() {
             >
               <span className="section-icon">{section.icon}</span>
               <span className="section-title">{section.title}</span>
-              <span className="section-chevron">
-                {expandedSections.has(index) ? '▾' : '▸'}
-              </span>
+              <span className="section-chevron">▾</span>
             </button>
-            {expandedSections.has(index) && (
-              <div className="rulebook-section-content">
-                <ul>
-                  {section.content.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <div className="rulebook-section-content">
+              <ul>
+                {section.content.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         ))}
       </div>
