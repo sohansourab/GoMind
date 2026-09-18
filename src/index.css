@@ -679,6 +679,123 @@ html, body {
   padding-left: 4px;
 }
 
+/* === Difficulty Options === */
+.difficulty-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.difficulty-option {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.difficulty-option:hover {
+  border-color: var(--accent);
+  background: rgba(220, 179, 92, 0.05);
+}
+
+.difficulty-option.selected {
+  border-color: var(--accent);
+  background: rgba(220, 179, 92, 0.12);
+}
+
+.difficulty-option input[type="radio"] {
+  display: none;
+}
+
+.difficulty-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.difficulty-emoji {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.difficulty-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.difficulty-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.difficulty-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.difficulty-easy.selected {
+  border-color: #4caf50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.difficulty-easy.selected .difficulty-name {
+  color: #4caf50;
+}
+
+.difficulty-medium.selected {
+  border-color: #ff9800;
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.difficulty-medium.selected .difficulty-name {
+  color: #ff9800;
+}
+
+.difficulty-hard.selected {
+  border-color: #f44336;
+  background: rgba(244, 67, 54, 0.1);
+}
+
+.difficulty-hard.selected .difficulty-name {
+  color: #f44336;
+}
+
+/* === Difficulty Badge (in-game) === */
+.difficulty-badge {
+  margin-top: 8px;
+}
+
+.difficulty-indicator {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.difficulty-indicator.difficulty-easy {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.difficulty-indicator.difficulty-medium {
+  background: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.difficulty-indicator.difficulty-hard {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
 @media (max-width: 480px) {
   .board-size-options {
     flex-direction: column;

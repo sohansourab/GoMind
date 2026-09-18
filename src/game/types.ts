@@ -52,15 +52,18 @@ export interface GameState {
   readonly komi: number;
   readonly ruleset: 'chinese';
   readonly playerMode: PlayerMode;
+  readonly aiDifficulty: AiDifficulty;
 }
 
 export type PlayerMode = 'human-vs-human' | 'human-vs-computer';
+export type AiDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface GameConfig {
   readonly size: number;
   readonly komi: number;
   readonly ruleset: 'chinese';
   readonly playerMode?: PlayerMode;
+  readonly aiDifficulty?: AiDifficulty;
 }
 
 export interface GameResult {

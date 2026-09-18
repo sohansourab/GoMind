@@ -62,8 +62,18 @@ export function GameInfo({ gameState, lastMoveMessage, reviewMode, reviewMoveInd
 
       <div className="move-count">
         Move {moveHistory.length} | Board: {gameState.size}×{gameState.size} | Komi: {gameState.komi}
-        {isVsComputer && ' | vs Computer'}
       </div>
+      {isVsComputer && (
+        <div className="difficulty-badge">
+          <span className={`difficulty-indicator difficulty-${gameState.aiDifficulty}`}>
+            {gameState.aiDifficulty === 'easy' && '🌱'}
+            {gameState.aiDifficulty === 'medium' && '⚔️'}
+            {gameState.aiDifficulty === 'hard' && '🐉'}
+            {' '}
+            vs Computer ({gameState.aiDifficulty.charAt(0).toUpperCase() + gameState.aiDifficulty.slice(1)})
+          </span>
+        </div>
+      )}
 
       {lastMoveMessage && (
         <div className="error-message">

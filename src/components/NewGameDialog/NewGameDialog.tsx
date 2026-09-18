@@ -1,15 +1,34 @@
 import React, { useState } from 'react';
-import { GameConfig, PlayerMode } from '../../game/types';
+import { GameConfig, PlayerMode, AiDifficulty } from '../../game/types';
 
 interface NewGameDialogProps {
   onNewGame: (config: GameConfig) => void;
   onClose: () => void;
 }
 
+const DIFFICULTY_INFO: Record<AiDifficulty, { label: string; emoji: string; description: string }> = {
+  easy: {
+    label: 'Easy',
+    emoji: '🌱',
+    description: 'Random play. Great for learning the rules.',
+  },
+  medium: {
+    label: 'Medium',
+    emoji: '⚔️',
+    description: 'Balanced play. Captures, defends, and attacks.',
+  },
+  hard: {
+    label: 'Hard',
+    emoji: '🐉',
+    description: 'Strong play with look-ahead and territory awareness.',
+  },
+};
+
 export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
   const [size, setSize] = useState<number>(9);
   const [komi, setKomi] = useState<number>(7.5);
   const [playerMode, setPlayerMode] = useState<PlayerMode>('human-vs-human');
+  const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>('medium');
 
   const handleStart = () => {
     onNewGame({
@@ -17,6 +36,7 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
       komi,
       ruleset: 'chinese',
       playerMode,
+      aiDifficulty,
     });
     onClose();
   };
@@ -82,6 +102,38 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
             <p className="dialog-hint">You play as Black (●). Computer plays as White (○).</p>
           )}
         </div>
+
+        {playerMode === 'human-vs-computer' && (
+          <div className="dialog-section">
+            <label className="dialog-label">Computer Difficulty</label>
+            <div className="difficulty-options">
+              {(['easy', 'medium', 'hard'] as AiDifficulty[]).map(diff => {
+                const info = DIFFICULTY_INFO[diff];
+                return (
+                  <label
+                    key={diff}
+                    className={`difficulty-option ${aiDifficulty === diff ? 'selected' : ''} difficulty-${diff}`}
+                  >
+                    <input
+                      type="radio"
+                      name="difficulty"
+                      value={diff}
+                      checked={aiDifficulty === diff}
+                      onChange={() => setAiDifficulty(diff)}
+                    />
+                    <div className="difficulty-content">
+                      <span className="difficulty-emoji">{info.emoji}</span>
+                      <div className="difficulty-text">
+                        <span className="difficulty-name">{info.label}</span>
+                        <span className="difficulty-desc">{info.description}</span>
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="dialog-section">
           <label className="dialog-label">Rules</label>

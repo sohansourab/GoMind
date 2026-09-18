@@ -1,21 +1,19 @@
 /**
- * Simple heuristic AI for Go.
+ * Go AI engine with configurable difficulty levels.
  * 
- * The AI evaluates all legal moves and picks the best one based on:
- * 1. Capturing opponent stones (highest priority)
- * 2. Saving own groups in atari (high priority)
- * 3. Reducing opponent liberties (medium priority)
- * 4. Playing near existing stones (low-medium priority)
- * 5. Preferring star points and strategic positions (low priority)
- * 6. Random tiebreaker
+ * The AI evaluates all legal moves and picks the best one based on
+ * weighted heuristics that vary by difficulty level.
  * 
- * This is not a strong AI but provides reasonable play for casual games.
+ * Easy: Random play with minimal heuristics. Makes frequent mistakes.
+ * Medium: Reasonable heuristic play. Captures, defends, attacks.
+ * Hard: Stronger evaluation with look-ahead and territory awareness.
  */
 
 import { GameState, Position, Stone, Color } from './types';
 import { getStone, getNeighbors, isOnBoard } from './board';
 import { getGroupStones, getGroupLiberties } from './groups';
 import { applyMove } from './rules';
+import { AiDifficulty, AI_CONFIGS, AiLevelConfig } from './aiLevels';
 
 interface MoveScore {
   position: Position;
@@ -42,8 +40,8 @@ function getLegalMoves(state: GameState): Position[] {
 }
 
 /**
- * Check if any group of the given color is in atari (1 liberty).
- * Returns the positions of groups in atari.
+ * Find all groups of a given color that are in atari (1 liberty).
+ * Returns array of groups, each group is an array of positions.
  */
 function getGroupsInAtari(state: GameState, color: Stone): Position[][] {
   const visited = new Set<string>();
@@ -71,9 +69,126 @@ function getGroupsInAtari(state: GameState, color: Stone): Position[][] {
 }
 
 /**
- * Score a move based on heuristics.
+ * Check if a position is a star point for the given board size.
  */
-function scoreMove(state: GameState, pos: Position): number {
+function isStarPoint(pos: Position, size: number): boolean {
+  if (size === 9) {
+    return [[4,4], [2,2], [2,6], [6,2], [6,6]].some(([x, y]) => x === pos.x && y === pos.y);
+  } else if (size === 13) {
+    return [[6,6], [3,3], [3,9], [9,3], [9,9]].some(([x, y]) => x === pos.x && y === pos.y);
+  } else if (size === 19) {
+    return [[3,3], [3,9], [3,15], [9,3], [9,9], [9,15], [15,3], [15,9], [15,15]]
+      .some(([x, y]) => x === pos.x && y === pos.y);
+  }
+  return false;
+}
+
+/**
+ * Check if a position is an eye for the given color.
+ */
+function isEye(board: readonly Stone[], pos: Position, color: Stone, size: number): boolean {
+  const orthogonal = getNeighbors(pos, size);
+  
+  for (const n of orthogonal) {
+    if (getStone(board, n, size) !== color) return false;
+  }
+
+  const diagonals: Position[] = [
+    { x: pos.x - 1, y: pos.y - 1 },
+    { x: pos.x + 1, y: pos.y - 1 },
+    { x: pos.x - 1, y: pos.y + 1 },
+    { x: pos.x + 1, y: pos.y + 1 },
+  ];
+
+  let badDiagonals = 0;
+  for (const d of diagonals) {
+    if (!isOnBoard(d, size)) continue;
+    const stone = getStone(board, d, size);
+    if (stone !== color) badDiagonals++;
+  }
+
+  const isCorner = (pos.x === 0 || pos.x === size - 1) && (pos.y === 0 || pos.y === size - 1);
+  const isEdge = pos.x === 0 || pos.x === size - 1 || pos.y === 0 || pos.y === size - 1;
+  
+  if (isCorner) return badDiagonals === 0;
+  if (isEdge) return badDiagonals <= 1;
+  return badDiagonals <= 1;
+}
+
+/**
+ * Check if playing at a position would result in self-atari
+ * (the placed stone's group would have exactly 1 liberty).
+ */
+function isSelfAtari(state: GameState, pos: Position): boolean {
+  const result = applyMove(state, pos);
+  if (!result.success) return true;
+  
+  const playerStone = state.currentPlayer === Color.BLACK ? Stone.BLACK : Stone.WHITE;
+  const group = getGroupStones(result.newState.board, pos, state.size);
+  const liberties = getGroupLiberties(result.newState.board, group, state.size);
+  return liberties.length === 1;
+}
+
+/**
+ * Simple territory estimation: count empty points that are closer to
+ * one color than the other (using BFS distance).
+ */
+function estimateTerritory(board: readonly Stone[], size: number, color: Stone): number {
+  const visited = new Set<string>();
+  const posKey = (p: Position) => `${p.x},${p.y}`;
+  let territory = 0;
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const pos = { x, y };
+      if (visited.has(posKey(pos))) continue;
+      if (getStone(board, pos, size) !== Stone.EMPTY) continue;
+
+      // BFS to find this empty region and its bordering colors
+      const region: Position[] = [];
+      const queue: Position[] = [pos];
+      const regionVisited = new Set<string>();
+      regionVisited.add(posKey(pos));
+
+      let bordersBlack = false;
+      let bordersWhite = false;
+
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        region.push(current);
+
+        for (const n of getNeighbors(current, size)) {
+          const stone = getStone(board, n, size);
+          if (stone === Stone.BLACK) bordersBlack = true;
+          else if (stone === Stone.WHITE) bordersWhite = true;
+          else {
+            const key = posKey(n);
+            if (!regionVisited.has(key)) {
+              regionVisited.add(key);
+              queue.push(n);
+            }
+          }
+        }
+      }
+
+      for (const p of region) visited.add(posKey(p));
+
+      // Count this region for the color if only bordered by that color
+      if (color === Stone.BLACK && bordersBlack && !bordersWhite) {
+        territory += region.length;
+      } else if (color === Stone.WHITE && bordersWhite && !bordersBlack) {
+        territory += region.length;
+      }
+    }
+  }
+
+  return territory;
+}
+
+/**
+ * Score a move based on the configured difficulty heuristics.
+ */
+function scoreMove(state: GameState, pos: Position, config: AiLevelConfig): number {
   let score = 0;
   const { size, board, currentPlayer } = state;
   const playerStone = currentPlayer === Color.BLACK ? Stone.BLACK : Stone.WHITE;
@@ -85,28 +200,24 @@ function scoreMove(state: GameState, pos: Position): number {
 
   const newState = result.newState;
 
-  // 1. Did we capture stones? (very high priority)
-  // Compare capture counts between old and new state
+  // 1. Captures
   const oldCaptures = playerStone === Stone.BLACK ? state.blackCaptures : state.whiteCaptures;
   const newCaptures = playerStone === Stone.BLACK ? newState.blackCaptures : newState.whiteCaptures;
   const captures = newCaptures - oldCaptures;
-  score += captures * 30;
+  score += captures * config.captureWeight;
 
-  // 2. Are we saving our own groups in atari?
+  // 2. Defense: saving own groups in atari
   const ownAtariBefore = getGroupsInAtari(state, playerStone);
   const ownAtariAfter = getGroupsInAtari(newState, playerStone);
-  
-  // Check if the placed stone's group was in atari before (it wasn't - it was just placed)
-  // Instead, check if we reduced the number of our groups in atari
   if (ownAtariAfter.length < ownAtariBefore.length) {
-    score += 20;
+    score += config.defenseWeight;
   }
 
-  // 3. Are we putting opponent groups in atari?
+  // 3. Attack: putting opponent groups in atari
   const opponentAtariAfter = getGroupsInAtari(newState, opponentStone);
-  score += opponentAtariAfter.length * 8;
+  score += opponentAtariAfter.length * config.attackWeight;
 
-  // 4. Proximity to existing stones (influence)
+  // 4. Proximity to existing stones
   const neighbors = getNeighbors(pos, size);
   let friendlyNeighbors = 0;
   let opponentNeighbors = 0;
@@ -117,131 +228,154 @@ function scoreMove(state: GameState, pos: Position): number {
     else if (stone === opponentStone) opponentNeighbors++;
   }
 
-  // Being near own stones is good (connection), being near opponent is ok (attack)
-  score += friendlyNeighbors * 3;
-  score += opponentNeighbors * 2;
+  score += friendlyNeighbors * config.proximityWeight;
+  score += opponentNeighbors * (config.proximityWeight * 0.7);
 
-  // 5. Check wider area (2 steps away) for influence
-  for (const n of neighbors) {
-    for (const nn of getNeighbors(n, size)) {
-      if (nn.x === pos.x && nn.y === pos.y) continue;
-      const stone = getStone(board, nn, size);
-      if (stone === playerStone) score += 1;
-      else if (stone === opponentStone) score += 0.5;
+  // 5. Wider influence
+  if (config.influenceWeight > 0) {
+    for (const n of neighbors) {
+      for (const nn of getNeighbors(n, size)) {
+        if (nn.x === pos.x && nn.y === pos.y) continue;
+        const stone = getStone(board, nn, size);
+        if (stone === playerStone) score += config.influenceWeight;
+        else if (stone === opponentStone) score += config.influenceWeight * 0.5;
+      }
     }
   }
 
-  // 6. Prefer star points and strategic locations early game
+  // 6. Star points (early game preference)
   const moveCount = state.moveHistory.length;
-  if (moveCount < size * 2) {
-    // Early game: prefer star points and 3rd/4th line
-    if (isStarPoint(pos, size)) score += 5;
-    
-    // Prefer 3rd and 4th line positions
+  if (config.starPointWeight > 0 && moveCount < size * 2) {
+    if (isStarPoint(pos, size)) score += config.starPointWeight;
+  }
+
+  // 7. Line preference (early game: prefer 3rd/4th line)
+  if (config.linePreferenceWeight > 0 && moveCount < size * 2) {
     const edgeDistance = Math.min(pos.x, pos.y, size - 1 - pos.x, size - 1 - pos.y);
-    if (edgeDistance === 2 || edgeDistance === 3) score += 3; // 3rd/4th line
-    else if (edgeDistance === 0) score -= 2; // 1st line (edge) is bad early
-    else if (edgeDistance === 1) score -= 1; // 2nd line is not great early
+    if (edgeDistance === 2 || edgeDistance === 3) score += config.linePreferenceWeight;
+    else if (edgeDistance === 0) score -= config.linePreferenceWeight;
+    else if (edgeDistance === 1) score -= config.linePreferenceWeight * 0.5;
   }
 
-  // 7. Avoid filling own eyes (very bad)
+  // 8. Eye avoidance (don't fill own eyes)
   if (isEye(board, pos, playerStone, size)) {
-    score -= 50;
+    score -= 50 * config.eyeAvoidanceStrength;
   }
 
-  // 8. Small random factor for variety
-  score += Math.random() * 2;
+  // 9. Self-atari penalty
+  if (config.selfAtariPenalty > 0 && isSelfAtari(state, pos)) {
+    // Only penalize if the group is large (small self-atari might be ok)
+    const group = getGroupStones(newState.board, pos, size);
+    if (group.length > 2) {
+      score -= config.selfAtariPenalty;
+    } else if (group.length === 1) {
+      score -= config.selfAtariPenalty * 0.5;
+    }
+  }
+
+  // 10. Territory estimation (hard AI only)
+  if (config.territoryWeight > 0 && moveCount > size) {
+    const territory = estimateTerritory(newState.board, size, playerStone);
+    score += territory * config.territoryWeight * 0.1;
+  }
+
+  // 11. Randomness
+  score += Math.random() * config.randomness;
 
   return score;
 }
 
 /**
- * Check if a position is a star point for the given board size.
+ * Simple look-ahead evaluation for hard AI.
+ * Evaluates the position after the move by looking one more move ahead
+ * (opponent's best response).
  */
-function isStarPoint(pos: Position, size: number): boolean {
-  if (size === 9) {
-    const starPoints = [[4,4], [2,2], [2,6], [6,2], [6,6]];
-    return starPoints.some(([x, y]) => x === pos.x && y === pos.y);
-  } else if (size === 13) {
-    const starPoints = [[6,6], [3,3], [3,9], [9,3], [9,9]];
-    return starPoints.some(([x, y]) => x === pos.x && y === pos.y);
-  } else if (size === 19) {
-    const starPoints = [[3,3], [3,9], [3,15], [9,3], [9,9], [9,15], [15,3], [15,9], [15,15]];
-    return starPoints.some(([x, y]) => x === pos.x && y === pos.y);
+function lookAheadScore(state: GameState, pos: Position, config: AiLevelConfig): number {
+  if (config.lookAheadDepth < 1) return 0;
+
+  const result = applyMove(state, pos);
+  if (!result.success) return -1000;
+
+  const afterMove = result.newState;
+  
+  // Get opponent's best response
+  const opponentMoves = getLegalMoves(afterMove);
+  if (opponentMoves.length === 0) return 100; // Opponent has no moves = great
+
+  // Evaluate opponent's best move (they'll try to maximize their score)
+  let bestOpponentScore = -Infinity;
+  const sampleSize = Math.min(opponentMoves.length, config.lookAheadDepth >= 2 ? 15 : 8);
+  
+  // Sample moves to evaluate (don't evaluate all for performance)
+  const sampledMoves = opponentMoves
+    .sort(() => Math.random() - 0.5)
+    .slice(0, sampleSize);
+
+  for (const oppPos of sampledMoves) {
+    const oppResult = applyMove(afterMove, oppPos);
+    if (!oppResult.success) continue;
+
+    // Simple evaluation: count captures and liberties
+    const playerStone = state.currentPlayer === Color.BLACK ? Stone.BLACK : Stone.WHITE;
+    const oppStone = playerStone === Stone.BLACK ? Stone.WHITE : Stone.BLACK;
+    
+    const oppCaptures = oppStone === Stone.BLACK 
+      ? oppResult.newState.blackCaptures - afterMove.blackCaptures
+      : oppResult.newState.whiteCaptures - afterMove.whiteCaptures;
+    
+    // Opponent's score from this response
+    let oppScore = oppCaptures * 20;
+    
+    // Check if opponent puts our groups in atari
+    const ourAtari = getGroupsInAtari(oppResult.newState, playerStone);
+    oppScore += ourAtari.length * 10;
+    
+    if (oppScore > bestOpponentScore) {
+      bestOpponentScore = oppScore;
+    }
   }
-  return false;
+
+  // Subtract opponent's best response score (we want to minimize their gain)
+  return -bestOpponentScore * 0.5;
 }
 
 /**
- * Check if a position is an eye for the given color.
- * An eye is an empty point where all orthogonal neighbors are the same color,
- * and all diagonal neighbors (on edges/corners with fewer diagonals) are also same color or off-board.
- */
-function isEye(board: readonly Stone[], pos: Position, color: Stone, size: number): boolean {
-  const orthogonal = getNeighbors(pos, size);
-  
-  // All orthogonal neighbors must be the player's color
-  for (const n of orthogonal) {
-    if (getStone(board, n, size) !== color) return false;
-  }
-
-  // Check diagonal neighbors - at most 1 can be empty/opponent for a true eye
-  const diagonals: Position[] = [
-    { x: pos.x - 1, y: pos.y - 1 },
-    { x: pos.x + 1, y: pos.y - 1 },
-    { x: pos.x - 1, y: pos.y + 1 },
-    { x: pos.x + 1, y: pos.y + 1 },
-  ];
-
-  let badDiagonals = 0;
-  for (const d of diagonals) {
-    if (!isOnBoard(d, size)) continue; // Off-board is OK
-    const stone = getStone(board, d, size);
-    if (stone !== color) badDiagonals++;
-  }
-
-  // For edge/corner eyes, allow 0 bad diagonals
-  // For center eyes, allow at most 1 bad diagonal
-  const isEdge = pos.x === 0 || pos.x === size - 1 || pos.y === 0 || pos.y === size - 1;
-  const isCorner = (pos.x === 0 || pos.x === size - 1) && (pos.y === 0 || pos.y === size - 1);
-  
-  if (isCorner) return badDiagonals === 0;
-  if (isEdge) return badDiagonals <= 1;
-  return badDiagonals <= 1;
-}
-
-/**
- * Choose the best move for the AI.
+ * Choose the best move for the AI at the given difficulty level.
  * Returns null if the AI should pass.
  */
-export function chooseMove(state: GameState): Position | null {
+export function chooseMove(state: GameState, difficulty: AiDifficulty = 'medium'): Position | null {
+  const config = AI_CONFIGS[difficulty];
   const legalMoves = getLegalMoves(state);
   
-  // If no legal moves, must pass
   if (legalMoves.length === 0) return null;
 
   // Score all moves
-  const scored: MoveScore[] = legalMoves.map(pos => ({
-    position: pos,
-    score: scoreMove(state, pos),
-  }));
+  const scored: MoveScore[] = legalMoves.map(pos => {
+    let totalScore = scoreMove(state, pos, config);
+    
+    // Add look-ahead bonus for hard AI
+    if (config.lookAheadDepth > 0) {
+      totalScore += lookAheadScore(state, pos, config);
+    }
+    
+    return { position: pos, score: totalScore };
+  });
 
   // Sort by score descending
   scored.sort((a, b) => b.score - a.score);
 
-  // If the best move has a very negative score, consider passing
-  // (this happens when all moves are bad, like filling eyes)
-  if (scored[0].score < -10 && state.moveHistory.length > state.size) {
-    // After some moves, if all options are terrible, pass
-    return null;
+  // Check pass threshold
+  if (scored[0].score < config.passThreshold && state.moveHistory.length > state.size) {
+    return null; // Pass
   }
 
-  // Pick from top moves with some randomness (among top 3 if close)
+  // Select from top pool
   const topScore = scored[0].score;
-  const topMoves = scored.filter(m => m.score >= topScore - 3);
+  const topMoves = scored.filter(m => m.score >= topScore - config.randomness);
+  const pool = topMoves.slice(0, config.topSelectionPool);
   
-  if (topMoves.length > 0) {
-    const chosen = topMoves[Math.floor(Math.random() * Math.min(3, topMoves.length))];
+  if (pool.length > 0) {
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
     return chosen.position;
   }
 
@@ -250,17 +384,17 @@ export function chooseMove(state: GameState): Position | null {
 
 /**
  * Check if the AI should pass instead of playing.
- * The AI passes if there are no good moves left (late game with no territory to gain).
  */
-export function shouldPass(state: GameState): boolean {
+export function shouldPass(state: GameState, difficulty: AiDifficulty = 'medium'): boolean {
+  const config = AI_CONFIGS[difficulty];
   const legalMoves = getLegalMoves(state);
   if (legalMoves.length === 0) return true;
 
-  // In late game, if all moves score poorly, pass
+  // Late game: check if all moves score poorly
   if (state.moveHistory.length > state.size * 3) {
-    const scored = legalMoves.map(pos => scoreMove(state, pos));
+    const scored = legalMoves.map(pos => scoreMove(state, pos, config));
     const maxScore = Math.max(...scored);
-    if (maxScore < 2) return true;
+    if (maxScore < config.passThreshold * 0.5) return true;
   }
 
   return false;

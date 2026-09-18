@@ -59,22 +59,26 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
 
     setIsAiThinking(true);
 
-    // Add a small delay so the AI doesn't play instantly (feels more natural)
+    // Add a delay so the AI doesn't play instantly (feels more natural)
+    // Hard AI takes longer to "think"
+    const baseDelay = gameState.aiDifficulty === 'hard' ? 600 : 400;
+    const delayVariance = gameState.aiDifficulty === 'hard' ? 600 : 400;
+
     aiTimeoutRef.current = setTimeout(() => {
       setGameState(prevState => {
         if (prevState.isGameOver) return prevState;
         if (prevState.currentPlayer !== Color.WHITE) return prevState;
 
+        const difficulty = prevState.aiDifficulty;
+
         // Check if AI should pass
-        if (shouldPass(prevState)) {
-          const newState = pass(prevState);
-          return newState;
+        if (shouldPass(prevState, difficulty)) {
+          return pass(prevState);
         }
 
         // Choose and apply AI move
-        const move = chooseMove(prevState);
+        const move = chooseMove(prevState, difficulty);
         if (move === null) {
-          // AI passes
           return pass(prevState);
         }
 
@@ -83,11 +87,10 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
           return result.newState;
         }
 
-        // If move fails for some reason, pass instead
         return pass(prevState);
       });
       setIsAiThinking(false);
-    }, 400 + Math.random() * 400); // 400-800ms delay
+    }, baseDelay + Math.random() * delayVariance);
 
     return () => {
       if (aiTimeoutRef.current) {

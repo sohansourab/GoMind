@@ -15,6 +15,7 @@ import { captureOpponentGroups } from './capture';
 export function createGame(config: GameConfig): GameState {
   const board = createEmptyBoard({ size: config.size });
   const playerMode = config.playerMode || 'human-vs-human';
+  const aiDifficulty = config.aiDifficulty || 'medium';
 
   return {
     board,
@@ -31,6 +32,7 @@ export function createGame(config: GameConfig): GameState {
     komi: config.komi,
     ruleset: config.ruleset,
     playerMode,
+    aiDifficulty,
   };
 }
 
