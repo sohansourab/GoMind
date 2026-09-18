@@ -10,6 +10,7 @@ import { Rulebook } from './components/Rulebook/Rulebook';
 import { PlayerPanel } from './components/PlayerPanel/PlayerPanel';
 import { GameStatus } from './components/GameStatus/GameStatus';
 import { SgfImportDialog } from './components/SgfImportDialog/SgfImportDialog';
+import { GameLibrary } from './components/GameLibrary';
 import { Stone, Color, Position, GameState } from './game/types';
 import { getLastMove } from './game/gameState';
 import { downloadSgf } from './sgf';
@@ -39,6 +40,7 @@ export default function App() {
   const [gameOverShown, setGameOverShown] = useState(false);
   const [showRulebook, setShowRulebook] = useState(false);
   const [showSgfImportDialog, setShowSgfImportDialog] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
 
   React.useEffect(() => {
     if (gameState.isGameOver && !gameOverShown) {
@@ -59,6 +61,18 @@ export default function App() {
     setShowSgfImportDialog(false);
   }, [handleLoadGameState]);
 
+  const handleContinueGame = useCallback((state: GameState, gameId: string) => {
+    handleLoadGameState(state);
+    setShowLibrary(false);
+  }, [handleLoadGameState]);
+
+  const handleReviewGame = useCallback((state: GameState, gameId: string) => {
+    handleLoadGameState(state);
+    setShowLibrary(false);
+    // Enter review mode automatically
+    // The review mode will be handled by the existing review functionality
+  }, [handleLoadGameState]);
+
   const lastMovePosition = useMemo((): Position | null => {
     if (reviewMode) return null;
     const lastMove = getLastMove(gameState);
@@ -77,6 +91,9 @@ export default function App() {
         </div>
         <div className="header-actions">
           <span className="board-size-badge">{gameState.size}×{gameState.size}</span>
+          <button className="btn btn-header" onClick={() => setShowLibrary(true)}>
+            Library
+          </button>
           <button className="btn btn-header" onClick={() => setShowNewGameDialog(true)}>
             New Game
           </button>
@@ -212,6 +229,14 @@ export default function App() {
         <SgfImportDialog
           onImport={handleImportSgf}
           onClose={() => setShowSgfImportDialog(false)}
+        />
+      )}
+
+      {showLibrary && (
+        <GameLibrary
+          onContinueGame={handleContinueGame}
+          onReviewGame={handleReviewGame}
+          onClose={() => setShowLibrary(false)}
         />
       )}
     </div>

@@ -6,6 +6,7 @@ import { GameState, Color, AiDifficulty, PlayerMode } from '../game/types';
 
 export interface SavedGame {
   id: string;
+  name?: string;
   createdAt: number;
   updatedAt: number;
   isCompleted: boolean;
@@ -38,8 +39,12 @@ export interface GameSummary {
   isCompleted: boolean;
   size: number;
   playerMode: PlayerMode;
+  aiDifficulty?: AiDifficulty;
   winner?: Color;
   winReason?: 'resignation' | 'score';
+  margin?: number;
+  moveCount: number;
+  name?: string;
 }
 
 export interface UserSettings {

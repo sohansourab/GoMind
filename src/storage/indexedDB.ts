@@ -122,8 +122,12 @@ class StorageLayer {
           isCompleted: game.isCompleted,
           size: game.size,
           playerMode: game.playerMode,
+          aiDifficulty: game.aiDifficulty,
           winner: game.result?.winner,
           winReason: game.result?.winReason,
+          margin: game.result?.margin,
+          moveCount: game.gameState.moveHistory.length,
+          name: game.name,
         }));
         
         // Sort by updatedAt descending (most recent first)
