@@ -173,7 +173,7 @@ npm run preview
 
 ### Move History
 *Review every move with our intuitive interface*
-![Move History]()
+![Move History](https://github.com/sohansourab/GoMind/blob/main/movehis.jpeg)
 </div>
 
 ---
