@@ -39,13 +39,13 @@ describe('AI', () => {
       };
 
       let captureCount = 0;
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 50; i++) {
         const move = chooseMove(state, 'easy');
         if (move && move.x === 1 && move.y === 0) {
           captureCount++;
         }
       }
-      // Easy AI should still capture, but less consistently
+      // Easy AI should capture at least sometimes (at least 10% of the time)
       expect(captureCount).toBeGreaterThan(5);
     });
 

@@ -176,8 +176,13 @@ export function downloadSgf(state: GameState, filename?: string): void {
   const link = document.createElement('a');
   link.href = url;
   link.download = filename || `game-${Date.now()}.sgf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  
+  // Only append to body if it exists (not in test environment)
+  if (document.body) {
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+  
   URL.revokeObjectURL(url);
 }
