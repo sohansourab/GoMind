@@ -6,10 +6,11 @@ interface GameStatusProps {
   reviewMode: boolean;
   reviewMoveIndex: number;
   lastMoveMessage: string | null;
+  isAiThinking?: boolean;
 }
 
-export function GameStatus({ gameState, reviewMode, reviewMoveIndex, lastMoveMessage }: GameStatusProps) {
-  const { currentPlayer, isGameOver, winner, winReason, moveHistory } = gameState;
+export function GameStatus({ gameState, reviewMode, reviewMoveIndex, lastMoveMessage, isAiThinking = false }: GameStatusProps) {
+  const { currentPlayer, isGameOver, winner, winReason, moveHistory, playerMode } = gameState;
 
   let statusText = '';
   let isAccent = false;
@@ -24,8 +25,12 @@ export function GameStatus({ gameState, reviewMode, reviewMoveIndex, lastMoveMes
       statusText = 'Game Over';
     }
     isAccent = true;
+  } else if (isAiThinking && playerMode === 'human-vs-computer') {
+    statusText = 'Computer thinking...';
+    isAccent = true;
   } else {
-    statusText = `${currentPlayer === Color.BLACK ? 'Black' : 'White'} to move`;
+    const playerName = playerMode === 'human-vs-computer' && currentPlayer === Color.WHITE ? 'Computer' : (currentPlayer === Color.BLACK ? 'Black' : 'White');
+    statusText = `${playerName} to move`;
   }
 
   return (
