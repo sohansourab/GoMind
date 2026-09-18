@@ -6,6 +6,7 @@ interface PlayerPanelProps {
   label: string;
   captures: number;
   isActive: boolean;
+  isThinking?: boolean;
 }
 
 export function PlayerPanel({ 
@@ -13,6 +14,7 @@ export function PlayerPanel({
   label, 
   captures, 
   isActive, 
+  isThinking = false,
 }: PlayerPanelProps) {
   const isBlack = color === Color.BLACK;
 
@@ -23,7 +25,10 @@ export function PlayerPanel({
           <div className={`player-stone ${isBlack ? 'black' : 'white'}`} />
           <div>
             <div className="player-label">{isBlack ? 'Black' : 'White'}</div>
-            <div className="player-name">{label}</div>
+            <div className="player-name">
+              {label}
+              {isThinking && <span className="thinking-indicator"> thinking...</span>}
+            </div>
           </div>
         </div>
         <div className="turn-indicator" title={isActive ? 'Active turn' : ''} />

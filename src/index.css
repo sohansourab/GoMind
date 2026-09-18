@@ -269,6 +269,18 @@ body {
   font-weight: 500;
 }
 
+.thinking-indicator {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 400;
+  animation: thinking-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes thinking-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
 .turn-indicator {
   width: 6px;
   height: 6px;

@@ -22,6 +22,7 @@ export default function App() {
     reviewBoard,
     lastMoveMessage,
     score,
+    isAiThinking,
     handleIntersectionClick,
     handlePass,
     handleResign,
@@ -91,7 +92,7 @@ export default function App() {
               onIntersectionClick={handleIntersectionClick}
               lastMovePosition={lastMovePosition}
               currentPlayer={currentPlayerStone}
-              disabled={gameState.isGameOver || reviewMode}
+              disabled={gameState.isGameOver || reviewMode || isAiThinking}
             />
           </div>
           <button
@@ -126,9 +127,10 @@ export default function App() {
           />
           <PlayerPanel
             color={Color.WHITE}
-            label="White"
+            label={gameState.playerMode === 'human-vs-computer' ? 'Computer' : 'White'}
             captures={gameState.whiteCaptures}
             isActive={!gameState.isGameOver && gameState.currentPlayer === Color.WHITE && !reviewMode}
+            isThinking={isAiThinking && gameState.currentPlayer === Color.WHITE}
           />
 
           {/* Game Status */}
@@ -137,12 +139,14 @@ export default function App() {
             reviewMode={reviewMode}
             reviewMoveIndex={reviewMoveIndex}
             lastMoveMessage={lastMoveMessage}
+            isAiThinking={isAiThinking}
           />
 
           {/* Controls */}
           <GameControls
             gameState={gameState}
             reviewMode={reviewMode}
+            isAiThinking={isAiThinking}
             onPass={handlePass}
             onResign={handleResign}
             onNewGame={() => setShowNewGameDialog(true)}
