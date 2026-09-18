@@ -8,6 +8,7 @@ import { getStone, setStone, boardHash } from './board';
 import { getGroupStones, getGroupLiberties } from './groups';
 import { captureOpponentGroups } from './capture';
 import { isKoViolation } from './ko';
+import { calculateScore } from './scoring';
 
 function colorToStone(color: Color): Stone {
   return color === Color.BLACK ? Stone.BLACK : Stone.WHITE;
@@ -118,14 +119,24 @@ export function applyPass(state: GameState): GameState {
   const consecutivePasses = state.consecutivePasses + 1;
   const isGameOver = consecutivePasses >= 2;
 
+  // If game is over by two passes, calculate the winner based on scoring
+  let winner: Color | null = state.winner;
+  let winReason: 'resignation' | 'score' | null = state.winReason;
+  
+  if (isGameOver) {
+    const score = calculateScore(state.board, state.size, state.komi);
+    winner = score.winner;
+    winReason = 'score';
+  }
+
   return {
     ...state,
     currentPlayer: state.currentPlayer === Color.BLACK ? Color.WHITE : Color.BLACK,
     moveHistory: [...state.moveHistory, move],
     consecutivePasses,
     isGameOver,
-    winner: isGameOver ? null : state.winner, // Winner determined by scoring
-    winReason: isGameOver ? null : state.winReason,
+    winner,
+    winReason,
   };
 }
 

@@ -18,6 +18,9 @@ import { getStone, getNeighbors } from './board';
  * Find all empty regions on the board and determine their ownership.
  * An empty region is owned by a color if all stones adjacent to it are of that color.
  * If adjacent to both colors or neither, it's neutral (dame).
+ * 
+ * IMPORTANT: A region is only territory if it's ENCLOSED by one color.
+ * If a region is too large (more than 20% of the board), it's considered neutral.
  */
 function findTerritory(board: Board, size: number): {
   blackTerritory: Position[];
@@ -74,9 +77,16 @@ function findTerritory(board: Board, size: number): {
       }
 
       // Determine ownership
-      if (adjacentToBlack && !adjacentToWhite) {
+      // A region is territory only if it's enclosed by one color
+      // If it's too large (more than 20% of the board), it's probably not territory
+      const onlyBlack = adjacentToBlack && !adjacentToWhite;
+      const onlyWhite = adjacentToWhite && !adjacentToBlack;
+      const maxTerritorySize = Math.floor(size * size * 0.2);
+      const isSmallEnough = region.length <= maxTerritorySize;
+      
+      if (onlyBlack && isSmallEnough) {
         blackTerritory.push(...region);
-      } else if (adjacentToWhite && !adjacentToBlack) {
+      } else if (onlyWhite && isSmallEnough) {
         whiteTerritory.push(...region);
       } else {
         neutralPoints.push(...region);

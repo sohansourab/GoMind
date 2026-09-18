@@ -1,47 +1,22 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import 'fake-indexeddb/auto';
 import { storage } from '../storage/indexedDB';
 import { saveGame, loadGame, listGames, deleteGame, getActiveGame, didHumanWin } from '../storage/api';
 import { createGame, playStone, pass, resign } from '../game/gameState';
 import { Color } from '../game/types';
 
-// Mock IndexedDB for testing
-const mockDB = {
-  createObjectStore: vi.fn(),
-  transaction: vi.fn(() => ({
-    objectStore: vi.fn(() => ({
-      put: vi.fn(() => ({ onsuccess: null, onerror: null })),
-      get: vi.fn(() => ({ onsuccess: null, onerror: null })),
-      getAll: vi.fn(() => ({ onsuccess: null, onerror: null })),
-      delete: vi.fn(() => ({ onsuccess: null, onerror: null })),
-      index: vi.fn(() => ({
-        getAll: vi.fn(() => ({ onsuccess: null, onerror: null })),
-      })),
-    })),
-  })),
-  close: vi.fn(),
-};
-
 describe('Storage Layer', () => {
-  beforeEach(() => {
-    // Mock indexedDB
-    const mockRequest = {
-      onsuccess: null as any,
-      onerror: null as any,
-      onupgradeneeded: null as any,
-      result: mockDB,
-    };
-
-    vi.stubGlobal('indexedDB', {
-      open: vi.fn(() => {
-        setTimeout(() => mockRequest.onsuccess?.(), 0);
-        return mockRequest;
-      }),
+  beforeEach(async () => {
+    // Clear the database before each test
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.deleteDatabase('satori-go-games');
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
     });
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.clearAllMocks();
+    // Clean up after each test
   });
 
   describe('saveGame', () => {
