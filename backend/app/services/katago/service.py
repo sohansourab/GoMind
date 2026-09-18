@@ -40,7 +40,7 @@ class KataGoService:
             
             self._config = KataGoConfig(
                 executable_path=settings.katago_binary_path,
-                model_path=settings.katago_model_path,
+                nn_model_path=settings.katago_model_path,
                 config_path=settings.katago_config_path if settings.katago_config_path else None,
                 max_visits=100,
                 timeout_seconds=30.0,

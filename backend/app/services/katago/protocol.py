@@ -32,7 +32,7 @@ class KataGoProtocol:
             cmd = [
                 self.config.executable_path,
                 "gtp",
-                "-model", self.config.model_path,
+                "-model", self.config.nn_model_path,
             ]
             
             if self.config.config_path:

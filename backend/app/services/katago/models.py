@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 class KataGoConfig(BaseModel):
     """Configuration for KataGo engine"""
     executable_path: str = Field(..., description="Path to KataGo executable")
-    model_path: str = Field(..., description="Path to KataGo model file")
+    nn_model_path: str = Field(..., description="Path to KataGo neural network model file")
     config_path: Optional[str] = Field(None, description="Path to KataGo config file")
     max_visits: int = Field(default=100, ge=1, description="Maximum analysis visits")
     timeout_seconds: float = Field(default=30.0, gt=0, description="Analysis timeout")
