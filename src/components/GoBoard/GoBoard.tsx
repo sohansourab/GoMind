@@ -12,6 +12,7 @@ interface GoBoardProps {
   lastMovePosition: Position | null;
   currentPlayer: Stone.BLACK | Stone.WHITE;
   disabled?: boolean;
+  hintPosition?: Position | null;
 }
 
 export function GoBoard({
@@ -21,6 +22,7 @@ export function GoBoard({
   lastMovePosition,
   currentPlayer,
   disabled = false,
+  hintPosition = null,
 }: GoBoardProps) {
   const [hoverPos, setHoverPos] = useState<Position | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -236,6 +238,20 @@ export function GoBoard({
 
       {/* Stones */}
       {stones}
+
+      {/* Hint marker */}
+      {hintPosition && !disabled && (
+        <circle
+          cx={offset + hintPosition.x * cellSize}
+          cy={offset + hintPosition.y * cellSize}
+          r={stoneRadius * 0.7}
+          fill="none"
+          stroke="rgba(201, 165, 90, 0.8)"
+          strokeWidth={2}
+          strokeDasharray="4 2"
+          style={{ pointerEvents: 'none' }}
+        />
+      )}
     </svg>
   );
 }

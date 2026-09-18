@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useGoGame } from './hooks/useGoGame';
 import { GoBoard } from './components/GoBoard/GoBoard';
 import { GameControls } from './components/GameControls/GameControls';
@@ -9,8 +9,11 @@ import { GameOverDialog } from './components/GameOverDialog/GameOverDialog';
 import { Rulebook } from './components/Rulebook/Rulebook';
 import { PlayerPanel } from './components/PlayerPanel/PlayerPanel';
 import { GameStatus } from './components/GameStatus/GameStatus';
-import { Stone, Color, Position } from './game/types';
+import { SgfImportDialog } from './components/SgfImportDialog/SgfImportDialog';
+import { BackendStatus } from './components/BackendStatus';
+import { Stone, Color, Position, GameState } from './game/types';
 import { getLastMove } from './game/gameState';
+import { downloadSgf } from './sgf';
 
 export default function App() {
   const {
@@ -21,20 +24,28 @@ export default function App() {
     lastMoveMessage,
     score,
     isAiThinking,
+    aiStatus,
+    hintPosition,
+    aiSettings,
     handleIntersectionClick,
     handlePass,
     handleResign,
     handleNewGame,
+    handleLoadGameState,
     handleReviewPrevious,
     handleReviewNext,
     handleReviewJumpTo,
     handleExitReview,
+    handleRequestHint,
+    handleClearHint,
+    handleUpdateAiSettings,
   } = useGoGame();
 
   const [showNewGameDialog, setShowNewGameDialog] = useState(false);
   const [showGameOverDialog, setShowGameOverDialog] = useState(false);
   const [gameOverShown, setGameOverShown] = useState(false);
   const [showRulebook, setShowRulebook] = useState(false);
+  const [showSgfImportDialog, setShowSgfImportDialog] = useState(false);
 
   React.useEffect(() => {
     if (gameState.isGameOver && !gameOverShown) {
@@ -45,6 +56,15 @@ export default function App() {
       setGameOverShown(false);
     }
   }, [gameState.isGameOver, gameOverShown]);
+
+  const handleExportSgf = useCallback(() => {
+    downloadSgf(gameState);
+  }, [gameState]);
+
+  const handleImportSgf = useCallback((state: GameState) => {
+    handleLoadGameState(state);
+    setShowSgfImportDialog(false);
+  }, [handleLoadGameState]);
 
   const lastMovePosition = useMemo((): Position | null => {
     if (reviewMode) return null;
@@ -81,6 +101,7 @@ export default function App() {
               lastMovePosition={lastMovePosition}
               currentPlayer={currentPlayerStone}
               disabled={gameState.isGameOver || reviewMode || isAiThinking}
+              hintPosition={hintPosition}
             />
           </div>
           {isAiThinking && (
@@ -120,14 +141,18 @@ export default function App() {
             label={isVsComputer ? 'You' : 'Black'}
             captures={gameState.blackCaptures}
             isActive={!gameState.isGameOver && gameState.currentPlayer === Color.BLACK && !reviewMode}
-            isAiThinking={isVsComputer && isAiThinking && gameState.currentPlayer === Color.BLACK}
+            isAiThinking={isAiThinking && gameState.currentPlayer === Color.BLACK}
+            isAi={false}
           />
           <PlayerPanel
             color={Color.WHITE}
-            label={isVsComputer ? 'Computer' : 'White'}
+            label={isVsComputer ? 'Satori AI' : 'White'}
             captures={gameState.whiteCaptures}
             isActive={!gameState.isGameOver && gameState.currentPlayer === Color.WHITE && !reviewMode}
-            isAiThinking={isVsComputer && isAiThinking && gameState.currentPlayer === Color.WHITE}
+            isAiThinking={isAiThinking && gameState.currentPlayer === Color.WHITE}
+            isAi={isVsComputer}
+            aiStatus={isVsComputer ? aiStatus : undefined}
+            aiDifficulty={isVsComputer ? gameState.aiDifficulty : undefined}
           />
 
           {/* Game Status */}
@@ -149,6 +174,13 @@ export default function App() {
             onReviewPrevious={handleReviewPrevious}
             onReviewNext={handleReviewNext}
             onExitReview={handleExitReview}
+            onRequestHint={handleRequestHint}
+            onClearHint={handleClearHint}
+            hintPosition={hintPosition}
+            hintsEnabled={aiSettings.hintsEnabled}
+            isHumanTurn={!isVsComputer || gameState.currentPlayer === Color.BLACK}
+            onExportSgf={handleExportSgf}
+            onImportSgf={() => setShowSgfImportDialog(true)}
           />
 
           {/* Score (when game over) */}
@@ -201,6 +233,16 @@ export default function App() {
           onClose={() => setShowGameOverDialog(false)}
         />
       )}
+
+      {showSgfImportDialog && (
+        <SgfImportDialog
+          onImport={handleImportSgf}
+          onClose={() => setShowSgfImportDialog(false)}
+        />
+      )}
+
+      {/* Backend Status Indicator - shows connection status to backend API */}
+      <BackendStatus visible={true} />
     </div>
   );
 }

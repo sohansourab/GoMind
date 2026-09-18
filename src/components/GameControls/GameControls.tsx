@@ -11,6 +11,13 @@ interface GameControlsProps {
   onReviewPrevious: () => void;
   onReviewNext: () => void;
   onExitReview: () => void;
+  onRequestHint?: () => void;
+  onClearHint?: () => void;
+  hintPosition?: { x: number; y: number } | null;
+  hintsEnabled?: boolean;
+  isHumanTurn?: boolean;
+  onExportSgf?: () => void;
+  onImportSgf?: () => void;
 }
 
 export function GameControls({
@@ -23,7 +30,17 @@ export function GameControls({
   onReviewPrevious,
   onReviewNext,
   onExitReview,
+  onRequestHint,
+  onClearHint,
+  hintPosition,
+  hintsEnabled = true,
+  isHumanTurn = true,
+  onExportSgf,
+  onImportSgf,
 }: GameControlsProps) {
+  const showHintButton = hintsEnabled && !gameState.isGameOver && !reviewMode && isHumanTurn && !isAiThinking;
+  const hasActiveHint = hintPosition !== null;
+
   return (
     <div className="game-controls">
       {!gameState.isGameOver && !reviewMode && (
@@ -42,6 +59,16 @@ export function GameControls({
           >
             Resign
           </button>
+          {showHintButton && onRequestHint && (
+            <button
+              className={`btn ${hasActiveHint ? 'btn-hint-active' : 'btn-hint'}`}
+              onClick={hasActiveHint && onClearHint ? onClearHint : onRequestHint}
+              disabled={isAiThinking}
+              title={hasActiveHint ? 'Clear hint' : 'Get hint'}
+            >
+              {hasActiveHint ? '✕ Clear' : '💡 Hint'}
+            </button>
+          )}
         </>
       )}
 
@@ -63,6 +90,28 @@ export function GameControls({
         {reviewMode && (
           <button className="btn btn-exit-review" onClick={onExitReview}>
             Exit Review
+          </button>
+        )}
+      </div>
+
+      <div className="sgf-controls">
+        {onExportSgf && (
+          <button
+            className="btn btn-sgf"
+            onClick={onExportSgf}
+            disabled={gameState.moveHistory.length === 0}
+            title="Export game as SGF file"
+          >
+            📥 Export SGF
+          </button>
+        )}
+        {onImportSgf && (
+          <button
+            className="btn btn-sgf"
+            onClick={onImportSgf}
+            title="Import game from SGF file"
+          >
+            📤 Import SGF
           </button>
         )}
       </div>

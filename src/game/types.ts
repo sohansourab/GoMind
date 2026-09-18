@@ -56,7 +56,7 @@ export interface GameState {
 }
 
 export type PlayerMode = 'human-vs-human' | 'human-vs-computer';
-export type AiDifficulty = 'easy' | 'medium' | 'hard';
+export type AiDifficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 
 export interface GameConfig {
   readonly size: number;

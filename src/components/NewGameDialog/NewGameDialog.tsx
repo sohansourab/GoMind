@@ -7,10 +7,15 @@ interface NewGameDialogProps {
 }
 
 const DIFFICULTY_INFO: Record<AiDifficulty, { label: string; emoji: string; description: string }> = {
+  beginner: {
+    label: 'Beginner',
+    emoji: '🌱',
+    description: 'Almost random. Perfect for learning the rules.',
+  },
   easy: {
     label: 'Easy',
-    emoji: '🌱',
-    description: 'Random play. Great for learning.',
+    emoji: '🌿',
+    description: 'Random play with basic tactics.',
   },
   medium: {
     label: 'Medium',
@@ -19,8 +24,13 @@ const DIFFICULTY_INFO: Record<AiDifficulty, { label: string; emoji: string; desc
   },
   hard: {
     label: 'Hard',
-    emoji: '🐉',
+    emoji: '🔥',
     description: 'Strong play with look-ahead.',
+  },
+  expert: {
+    label: 'Expert',
+    emoji: '🐉',
+    description: 'Maximum difficulty. Deep analysis.',
   },
 };
 
@@ -111,7 +121,7 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
             <div className="dialog-section">
               <label className="dialog-label">Difficulty</label>
               <div className="difficulty-options">
-                {(['easy', 'medium', 'hard'] as AiDifficulty[]).map(diff => {
+                {(['beginner', 'easy', 'medium', 'hard', 'expert'] as AiDifficulty[]).map(diff => {
                   const info = DIFFICULTY_INFO[diff];
                   return (
                     <label
