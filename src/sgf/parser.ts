@@ -234,8 +234,8 @@ export function sgfGameToGameState(sgfGame: SgfGame): GameState {
       // Regular move
       const result = playStone(state, move.position);
       
-      if (!result.success) {
-        throw new Error(`Move ${move.moveNumber} at (${move.position.x}, ${move.position.y}): ${result.reason}`);
+      if (!result.success || !result.newState) {
+        throw new Error(`Move ${move.moveNumber} at (${move.position.x}, ${move.position.y}): ${result.reason || 'Unknown error'}`);
       }
       
       state = result.newState;

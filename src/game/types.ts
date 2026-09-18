@@ -61,6 +61,9 @@ export interface ScoreResult {
 }
 
 export type AiDifficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
+export type PlayerMode = 'human-vs-human' | 'human-vs-computer';
+export type Coordinate = string;
+export type Board = readonly Stone[];
 
 export interface MoveResult {
   success: boolean;

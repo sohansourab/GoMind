@@ -2,6 +2,10 @@ import { Stone, Position } from './types';
 
 export type Board = readonly Stone[];
 
+export function positionsEqual(a: Position, b: Position): boolean {
+  return a.x === b.x && a.y === b.y;
+}
+
 export function createEmptyBoard(size: number): Board {
   return Array(size * size).fill(Stone.EMPTY);
 }

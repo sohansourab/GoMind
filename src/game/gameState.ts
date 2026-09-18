@@ -1,7 +1,8 @@
-import { GameState, GameConfig, Color, Position, MoveResult, Move } from './types';
-import { createEmptyBoard } from './board';
+import { GameState, GameConfig, Color, Position, MoveResult, Move, Stone } from './types';
+import { createEmptyBoard, setStone } from './board';
 import { applyMove, applyPass, applyResign } from './rules';
 import { calculateScore } from './scoring';
+import { captureOpponentGroups } from './capture';
 
 export function createGame(config: GameConfig): GameState {
   return {
@@ -44,4 +45,26 @@ export function getLastMove(state: GameState): Move | null {
     return null;
   }
   return state.moveHistory[state.moveHistory.length - 1];
+}
+
+export function getBoardAtMove(state: GameState, moveIndex: number): readonly Stone[] {
+  if (moveIndex === 0) {
+    return createEmptyBoard(state.size);
+  }
+  
+  let board = createEmptyBoard(state.size);
+  
+  for (let i = 0; i < moveIndex && i < state.moveHistory.length; i++) {
+    const move = state.moveHistory[i];
+    if (move.type === 'play' && move.position) {
+      const stoneColor = move.color === Color.BLACK ? Stone.BLACK : Stone.WHITE;
+      board = setStone(board, move.position, state.size, stoneColor);
+      
+      // Handle captures
+      const captureResult = captureOpponentGroups(board, move.position, stoneColor, state.size);
+      board = captureResult.board;
+    }
+  }
+  
+  return board;
 }

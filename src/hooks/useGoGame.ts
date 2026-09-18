@@ -75,11 +75,11 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
     if (isAiThinking) return; // Prevent moves while AI is thinking
 
     const result = playStone(gameState, pos);
-    if (result.success) {
+    if (result.success && result.newState) {
       setGameState(result.newState);
       setLastMoveMessage(null);
-    } else {
-      setLastMoveMessage(result.reason);
+    } else if (!result.success) {
+      setLastMoveMessage(result.reason || 'Invalid move');
       // Clear message after 2 seconds
       setTimeout(() => setLastMoveMessage(null), 2000);
     }
@@ -189,7 +189,7 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
         const result = playStone(prevState, aiMove);
         setIsAiThinking(false);
         
-        if (result.success) {
+        if (result.success && result.newState) {
           return result.newState;
         } else {
           // AI returned illegal move - this shouldn't happen, but handle gracefully
