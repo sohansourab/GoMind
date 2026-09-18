@@ -33,6 +33,7 @@ export default function App() {
   const [showNewGameDialog, setShowNewGameDialog] = useState(false);
   const [showGameOverDialog, setShowGameOverDialog] = useState(false);
   const [gameOverShown, setGameOverShown] = useState(false);
+  const [showRulebook, setShowRulebook] = useState(false);
 
   // Show game over dialog when game ends
   React.useEffect(() => {
@@ -90,7 +91,13 @@ export default function App() {
         </div>
 
         <div className="sidebar">
-          {gameState.moveHistory.length === 0 && <Rulebook />}
+          <button 
+            className="rulebook-toggle"
+            onClick={() => setShowRulebook(!showRulebook)}
+          >
+            {showRulebook ? '📖 Hide Rules' : '📖 How to Play'}
+          </button>
+          {showRulebook && <Rulebook />}
 
           <GameInfo
             gameState={gameState}
