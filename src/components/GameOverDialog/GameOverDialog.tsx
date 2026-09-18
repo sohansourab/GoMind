@@ -11,7 +11,6 @@ interface GameOverDialogProps {
 export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOverDialogProps) {
   const { winner, winReason, playerMode } = gameState;
   const isVsComputer = playerMode === 'human-vs-computer';
-  // Human plays Black, computer plays White
   const humanWon = winner === Color.BLACK;
 
   return (
@@ -24,8 +23,8 @@ export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOve
             <div className="result-text">
               <span className="winner-announce">
                 {isVsComputer
-                  ? (humanWon ? '🎉 You win!' : 'Computer wins')
-                  : `${winner === Color.BLACK ? '● Black' : '○ White'} wins`
+                  ? (humanWon ? 'You Win' : 'Computer Wins')
+                  : `${winner === Color.BLACK ? 'Black' : 'White'} Wins`
                 }
               </span>
               <span className="win-method">
@@ -39,8 +38,8 @@ export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOve
             <div className="result-text">
               <span className="winner-announce">
                 {isVsComputer
-                  ? (humanWon ? '🎉 You win!' : 'Computer wins')
-                  : `${score.winner === Color.BLACK ? '● Black' : '○ White'} wins`
+                  ? (humanWon ? 'You Win' : 'Computer Wins')
+                  : `${score.winner === Color.BLACK ? 'Black' : 'White'} Wins`
                 }
               </span>
               <span className="win-method">
@@ -48,11 +47,11 @@ export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOve
               </span>
               <div className="final-scores">
                 <div className="final-score-item">
-                  <span className="stone-icon black small" />
+                  <span className="player-stone black small" />
                   <span>{isVsComputer ? 'You' : 'Black'}: {score.blackTotal}</span>
                 </div>
                 <div className="final-score-item">
-                  <span className="stone-icon white small" />
+                  <span className="player-stone white small" />
                   <span>{isVsComputer ? 'Computer' : 'White'}: {score.whiteTotal}</span>
                 </div>
               </div>
@@ -61,7 +60,7 @@ export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOve
         </div>
 
         <div className="dialog-actions">
-          <button className="btn btn-secondary" onClick={onClose}>Review Game</button>
+          <button className="btn btn-ghost" onClick={onClose}>Review Game</button>
           <button className="btn btn-primary" onClick={onNewGame}>New Game</button>
         </div>
       </div>

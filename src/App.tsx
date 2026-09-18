@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { useGoGame } from './hooks/useGoGame';
 import { GoBoard } from './components/GoBoard/GoBoard';
-import { GameInfo } from './components/GameInfo/GameInfo';
 import { GameControls } from './components/GameControls/GameControls';
 import { MoveHistory } from './components/MoveHistory/MoveHistory';
 import { ScorePanel } from './components/ScorePanel/ScorePanel';
 import { NewGameDialog } from './components/NewGameDialog/NewGameDialog';
 import { GameOverDialog } from './components/GameOverDialog/GameOverDialog';
 import { Rulebook } from './components/Rulebook/Rulebook';
+import { PlayerPanel } from './components/PlayerPanel/PlayerPanel';
+import { GameStatus } from './components/GameStatus/GameStatus';
 import { Stone, Color, Position } from './game/types';
 import { getLastMove } from './game/gameState';
 
@@ -35,7 +36,6 @@ export default function App() {
   const [gameOverShown, setGameOverShown] = useState(false);
   const [showRulebook, setShowRulebook] = useState(false);
 
-  // Show game over dialog when game ends
   React.useEffect(() => {
     if (gameState.isGameOver && !gameOverShown) {
       setShowGameOverDialog(true);
@@ -59,12 +59,16 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">
-          <span className="title-go">GO</span>
-        </h1>
-        <button className="btn btn-new-game-header" onClick={() => setShowNewGameDialog(true)}>
-          New Game
-        </button>
+        <div className="app-title">
+          <span className="title-go">Satori</span>
+          <span className="title-subtitle">The Game of Go</span>
+        </div>
+        <div className="header-actions">
+          <span className="board-size-badge">{gameState.size}×{gameState.size}</span>
+          <button className="btn btn-header" onClick={() => setShowNewGameDialog(true)}>
+            New Game
+          </button>
+        </div>
       </header>
 
       <main className="app-main">
@@ -84,7 +88,7 @@ export default function App() {
               <span className="thinking-dots">
                 <span></span><span></span><span></span>
               </span>
-              Computer is thinking...
+              Computer is thinking
             </div>
           )}
           <button
@@ -93,7 +97,7 @@ export default function App() {
             title={showRulebook ? 'Hide Rules' : 'How to Play'}
           >
             <span className="rulebook-icon-svg">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
               </svg>
@@ -110,14 +114,31 @@ export default function App() {
         </div>
 
         <div className="sidebar">
-          <GameInfo
-            gameState={gameState}
-            lastMoveMessage={lastMoveMessage}
-            reviewMode={reviewMode}
-            reviewMoveIndex={reviewMoveIndex}
-            isAiThinking={isAiThinking}
+          {/* Player Panels */}
+          <PlayerPanel
+            color={Color.BLACK}
+            label={isVsComputer ? 'You' : 'Black'}
+            captures={gameState.blackCaptures}
+            isActive={!gameState.isGameOver && gameState.currentPlayer === Color.BLACK && !reviewMode}
+            isAiThinking={isVsComputer && isAiThinking && gameState.currentPlayer === Color.BLACK}
+          />
+          <PlayerPanel
+            color={Color.WHITE}
+            label={isVsComputer ? 'Computer' : 'White'}
+            captures={gameState.whiteCaptures}
+            isActive={!gameState.isGameOver && gameState.currentPlayer === Color.WHITE && !reviewMode}
+            isAiThinking={isVsComputer && isAiThinking && gameState.currentPlayer === Color.WHITE}
           />
 
+          {/* Game Status */}
+          <GameStatus
+            gameState={gameState}
+            reviewMode={reviewMode}
+            reviewMoveIndex={reviewMoveIndex}
+            lastMoveMessage={lastMoveMessage}
+          />
+
+          {/* Controls */}
           <GameControls
             gameState={gameState}
             reviewMode={reviewMode}
@@ -130,6 +151,7 @@ export default function App() {
             onExitReview={handleExitReview}
           />
 
+          {/* Score (when game over) */}
           {gameState.isGameOver && score && (
             <ScorePanel
               score={score}
@@ -138,6 +160,7 @@ export default function App() {
             />
           )}
 
+          {/* Move History */}
           <MoveHistory
             gameState={gameState}
             reviewMode={reviewMode}

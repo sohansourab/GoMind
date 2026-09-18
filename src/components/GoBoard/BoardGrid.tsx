@@ -13,6 +13,7 @@ export function BoardGrid({ size, cellSize, offset }: BoardGridProps) {
   // Horizontal lines
   for (let i = 0; i < size; i++) {
     const y = offset + i * cellSize;
+    const isBorder = i === 0 || i === size - 1;
     lines.push(
       <line
         key={`h-${i}`}
@@ -20,8 +21,9 @@ export function BoardGrid({ size, cellSize, offset }: BoardGridProps) {
         y1={y}
         x2={offset + boardPixelSize}
         y2={y}
-        stroke="#333"
-        strokeWidth={i === 0 || i === size - 1 ? 1.2 : 0.8}
+        stroke="#3a3020"
+        strokeWidth={isBorder ? 1.0 : 0.65}
+        opacity={isBorder ? 0.9 : 0.75}
       />
     );
   }
@@ -29,6 +31,7 @@ export function BoardGrid({ size, cellSize, offset }: BoardGridProps) {
   // Vertical lines
   for (let i = 0; i < size; i++) {
     const x = offset + i * cellSize;
+    const isBorder = i === 0 || i === size - 1;
     lines.push(
       <line
         key={`v-${i}`}
@@ -36,8 +39,9 @@ export function BoardGrid({ size, cellSize, offset }: BoardGridProps) {
         y1={offset}
         x2={x}
         y2={offset + boardPixelSize}
-        stroke="#333"
-        strokeWidth={i === 0 || i === size - 1 ? 1.2 : 0.8}
+        stroke="#3a3020"
+        strokeWidth={isBorder ? 1.0 : 0.65}
+        opacity={isBorder ? 0.9 : 0.75}
       />
     );
   }

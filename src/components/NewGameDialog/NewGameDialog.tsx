@@ -10,17 +10,17 @@ const DIFFICULTY_INFO: Record<AiDifficulty, { label: string; emoji: string; desc
   easy: {
     label: 'Easy',
     emoji: '🌱',
-    description: 'Random play. Great for learning the rules.',
+    description: 'Random play. Great for learning.',
   },
   medium: {
     label: 'Medium',
     emoji: '⚔️',
-    description: 'Balanced play. Captures, defends, and attacks.',
+    description: 'Balanced play with strategy.',
   },
   hard: {
     label: 'Hard',
     emoji: '🐉',
-    description: 'Strong play with look-ahead and territory awareness.',
+    description: 'Strong play with look-ahead.',
   },
 };
 
@@ -47,7 +47,7 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
         <h2>New Game</h2>
 
         <div className="dialog-section">
-          <label className="dialog-label">Board Size</label>
+          <label className="dialog-label">Board</label>
           <div className="board-size-options">
             {[9, 13, 19].map(s => (
               <label key={s} className={`radio-option ${size === s ? 'selected' : ''}`}>
@@ -77,10 +77,7 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
                 checked={playerMode === 'human-vs-human'}
                 onChange={() => setPlayerMode('human-vs-human')}
               />
-              <span className="player-mode-label">
-                <span className="player-icon">👤👤</span>
-                <span>Human vs Human</span>
-              </span>
+              <span>Human vs Human</span>
             </label>
             <label
               className={`radio-option ${playerMode === 'human-vs-computer' ? 'selected' : ''}`}
@@ -92,10 +89,7 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
                 checked={playerMode === 'human-vs-computer'}
                 onChange={() => setPlayerMode('human-vs-computer')}
               />
-              <span className="player-mode-label">
-                <span className="player-icon">👤🤖</span>
-                <span>Human vs Computer</span>
-              </span>
+              <span>Human vs Computer</span>
             </label>
           </div>
           {playerMode === 'human-vs-computer' && (
@@ -105,7 +99,7 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
 
         {playerMode === 'human-vs-computer' && (
           <div className="dialog-section">
-            <label className="dialog-label">Computer Difficulty</label>
+            <label className="dialog-label">Difficulty</label>
             <div className="difficulty-options">
               {(['easy', 'medium', 'hard'] as AiDifficulty[]).map(diff => {
                 const info = DIFFICULTY_INFO[diff];
@@ -154,7 +148,7 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
         </div>
 
         <div className="dialog-actions">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={handleStart}>Start Game</button>
         </div>
       </div>

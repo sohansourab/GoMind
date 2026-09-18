@@ -24,18 +24,12 @@ export function GameControls({
   onReviewNext,
   onExitReview,
 }: GameControlsProps) {
-  const controlsDisabled = gameState.isGameOver || reviewMode || isAiThinking;
-
   return (
     <div className="game-controls">
-      <button className="btn btn-new-game" onClick={onNewGame}>
-        New Game
-      </button>
-
       {!gameState.isGameOver && !reviewMode && (
         <>
           <button
-            className="btn btn-pass"
+            className="btn"
             onClick={onPass}
             disabled={isAiThinking}
           >
@@ -57,14 +51,14 @@ export function GameControls({
           onClick={onReviewPrevious}
           disabled={reviewMode ? false : gameState.moveHistory.length === 0}
         >
-          ◀ Previous
+          ← Prev
         </button>
         <button
           className="btn btn-review"
           onClick={onReviewNext}
           disabled={!reviewMode}
         >
-          Next ▶
+          Next →
         </button>
         {reviewMode && (
           <button className="btn btn-exit-review" onClick={onExitReview}>

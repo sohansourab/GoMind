@@ -10,7 +10,7 @@ interface ScorePanelProps {
 export function ScorePanel({ score, winner, winReason }: ScorePanelProps) {
   return (
     <div className="score-panel">
-      <h3>Final Score (Chinese Rules)</h3>
+      <h3>Final Score</h3>
       <div className="score-grid">
         <div className="score-header"></div>
         <div className="score-header">Black</div>

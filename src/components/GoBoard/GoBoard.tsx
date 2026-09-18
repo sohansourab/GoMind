@@ -25,9 +25,8 @@ export function GoBoard({
   const [hoverPos, setHoverPos] = useState<Position | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  // Calculate dimensions
-  const padding = 20;
-  const totalSize = 500; // SVG viewBox size
+  const padding = 22;
+  const totalSize = 500;
   const cellSize = (totalSize - 2 * padding) / (size - 1);
   const offset = padding;
 
@@ -47,13 +46,11 @@ export function GoBoard({
       clientY = e.clientY;
     }
 
-    // Convert to SVG coordinates
     const scaleX = totalSize / rect.width;
     const scaleY = totalSize / rect.height;
     const svgX = (clientX - rect.left) * scaleX;
     const svgY = (clientY - rect.top) * scaleY;
 
-    // Convert to board position
     const x = Math.round((svgX - offset) / cellSize);
     const y = Math.round((svgY - offset) / cellSize);
 
@@ -70,7 +67,6 @@ export function GoBoard({
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (disabled) return;
     e.preventDefault();
-    // Use the last known position from touch move
     if (hoverPos) {
       onIntersectionClick(hoverPos);
     }
@@ -92,7 +88,24 @@ export function GoBoard({
     setHoverPos(null);
   }, []);
 
-  const stoneRadius = cellSize * 0.45;
+  const stoneRadius = cellSize * 0.46;
+
+  // Track which stones are "new" (just placed) for animation
+  const prevBoardRef = useRef<readonly Stone[]>(board);
+  const newStones = useMemo(() => {
+    const newOnes = new Set<string>();
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const idx = y * size + x;
+        if (board[idx] !== Stone.EMPTY && prevBoardRef.current[idx] === Stone.EMPTY) {
+          newOnes.add(`${x}-${y}`);
+        }
+      }
+    }
+    // Update ref after computing
+    setTimeout(() => { prevBoardRef.current = board; }, 200);
+    return newOnes;
+  }, [board, size]);
 
   // Render stones
   const stones = useMemo(() => {
@@ -104,6 +117,7 @@ export function GoBoard({
 
         const isLast = lastMovePosition !== null &&
           positionsEqual(lastMovePosition, { x, y });
+        const isNew = newStones.has(`${x}-${y}`);
 
         elements.push(
           <StoneComponent
@@ -113,29 +127,34 @@ export function GoBoard({
             color={stone}
             radius={stoneRadius}
             isLastMove={isLast}
+            isNew={isNew}
           />
         );
       }
     }
     return elements;
-  }, [board, size, cellSize, offset, stoneRadius, lastMovePosition]);
+  }, [board, size, cellSize, offset, stoneRadius, lastMovePosition, newStones]);
 
-  // Hover indicator
+  // Ghost stone (hover indicator)
   const hoverIndicator = useMemo(() => {
     if (!hoverPos || disabled) return null;
     const idx = hoverPos.y * size + hoverPos.x;
     if (board[idx] !== Stone.EMPTY) return null;
 
+    const isBlack = currentPlayer === Stone.BLACK;
+
     return (
-      <circle
-        cx={offset + hoverPos.x * cellSize}
-        cy={offset + hoverPos.y * cellSize}
-        r={stoneRadius}
-        fill={currentPlayer === Stone.BLACK ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.5)'}
-        stroke={currentPlayer === Stone.BLACK ? 'rgba(0,0,0,0.5)' : 'rgba(150,150,150,0.5)'}
-        strokeWidth={1}
-        style={{ pointerEvents: 'none' }}
-      />
+      <g style={{ pointerEvents: 'none' }}>
+        {/* Ghost stone */}
+        <circle
+          cx={offset + hoverPos.x * cellSize}
+          cy={offset + hoverPos.y * cellSize}
+          r={stoneRadius}
+          fill={isBlack ? 'rgba(0,0,0,0.25)' : 'rgba(240,236,228,0.45)'}
+          stroke={isBlack ? 'rgba(0,0,0,0.35)' : 'rgba(180,175,165,0.4)'}
+          strokeWidth={0.8}
+        />
+      </g>
     );
   }, [hoverPos, disabled, board, size, cellSize, offset, stoneRadius, currentPlayer]);
 
@@ -149,37 +168,53 @@ export function GoBoard({
       onMouseLeave={handleMouseLeave}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      role="img"
+      aria-label={`Go board, ${size} by ${size}`}
     >
-      {/* Board background - wood texture */}
-      <rect
-        x={0}
-        y={0}
-        width={totalSize}
-        height={totalSize}
-        rx={8}
-        fill="#dcb35c"
-      />
-      {/* Subtle wood grain overlay */}
-      <rect
-        x={0}
-        y={0}
-        width={totalSize}
-        height={totalSize}
-        rx={8}
-        fill="url(#woodGrain)"
-        opacity={0.1}
-      />
-
-      {/* Wood grain pattern */}
       <defs>
-        <pattern id="woodGrain" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-          <line x1="0" y1="10" x2="100" y2="12" stroke="#a08030" strokeWidth="0.5" opacity="0.3" />
-          <line x1="0" y1="30" x2="100" y2="28" stroke="#a08030" strokeWidth="0.3" opacity="0.2" />
-          <line x1="0" y1="50" x2="100" y2="52" stroke="#a08030" strokeWidth="0.5" opacity="0.3" />
-          <line x1="0" y1="70" x2="100" y2="68" stroke="#a08030" strokeWidth="0.3" opacity="0.2" />
-          <line x1="0" y1="90" x2="100" y2="92" stroke="#a08030" strokeWidth="0.5" opacity="0.3" />
+        {/* Wood grain pattern */}
+        <pattern id="woodGrain" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+          {/* Base warm wood */}
+          <rect width="200" height="200" fill="#dcb35c" />
+          {/* Grain lines - subtle, organic */}
+          <line x1="0" y1="15" x2="200" y2="18" stroke="#c9a04a" strokeWidth="0.6" opacity="0.25" />
+          <line x1="0" y1="35" x2="200" y2="32" stroke="#c9a04a" strokeWidth="0.4" opacity="0.18" />
+          <line x1="0" y1="55" x2="200" y2="58" stroke="#c9a04a" strokeWidth="0.7" opacity="0.22" />
+          <line x1="0" y1="78" x2="200" y2="75" stroke="#c9a04a" strokeWidth="0.4" opacity="0.15" />
+          <line x1="0" y1="98" x2="200" y2="100" stroke="#c9a04a" strokeWidth="0.6" opacity="0.2" />
+          <line x1="0" y1="120" x2="200" y2="118" stroke="#c9a04a" strokeWidth="0.5" opacity="0.18" />
+          <line x1="0" y1="142" x2="200" y2="145" stroke="#c9a04a" strokeWidth="0.4" opacity="0.15" />
+          <line x1="0" y1="165" x2="200" y2="162" stroke="#c9a04a" strokeWidth="0.6" opacity="0.22" />
+          <line x1="0" y1="185" x2="200" y2="188" stroke="#c9a04a" strokeWidth="0.4" opacity="0.18" />
         </pattern>
+        
+        {/* Board edge shadow */}
+        <linearGradient id="boardEdge" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.08)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.12)" />
+        </linearGradient>
       </defs>
+
+      {/* Board background - warm wood */}
+      <rect
+        x={0}
+        y={0}
+        width={totalSize}
+        height={totalSize}
+        rx={6}
+        fill="url(#woodGrain)"
+      />
+      
+      {/* Subtle edge gradient for depth */}
+      <rect
+        x={0}
+        y={0}
+        width={totalSize}
+        height={totalSize}
+        rx={6}
+        fill="url(#boardEdge)"
+        opacity={0.5}
+      />
 
       {/* Grid */}
       <BoardGrid size={size} cellSize={cellSize} offset={offset} />
@@ -187,7 +222,7 @@ export function GoBoard({
       {/* Star points */}
       <StarPoints size={size} cellSize={cellSize} offset={offset} />
 
-      {/* Hover indicator */}
+      {/* Hover indicator (ghost stone) */}
       {hoverIndicator}
 
       {/* Stones */}

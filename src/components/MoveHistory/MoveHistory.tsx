@@ -25,7 +25,9 @@ export function MoveHistory({ gameState, reviewMode, reviewMoveIndex, onJumpToMo
   if (moveHistory.length === 0) {
     return (
       <div className="move-history">
-        <h3>Move History</h3>
+        <div className="move-history-header">
+          <h3>Move History</h3>
+        </div>
         <div className="move-history-empty">No moves yet</div>
       </div>
     );
@@ -33,7 +35,12 @@ export function MoveHistory({ gameState, reviewMode, reviewMoveIndex, onJumpToMo
 
   return (
     <div className="move-history">
-      <h3>Move History</h3>
+      <div className="move-history-header">
+        <h3>Move History</h3>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>
+          {moveHistory.length} moves
+        </span>
+      </div>
       <div className="move-history-list" ref={listRef}>
         {moveHistory.map((move, index) => {
           const isActive = reviewMode && reviewMoveIndex === index + 1;
@@ -46,6 +53,9 @@ export function MoveHistory({ gameState, reviewMode, reviewMoveIndex, onJumpToMo
               key={index}
               className={`move-item ${isActive ? 'active' : ''}`}
               onClick={() => onJumpToMove(index + 1)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter') onJumpToMove(index + 1); }}
             >
               <span className="move-number">{move.moveNumber}.</span>
               <span className={`move-color ${move.color === Color.BLACK ? 'black' : 'white'}`}>
