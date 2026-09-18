@@ -1,222 +1,308 @@
-# Satori - The Game of Go
+<div align="center">
 
-A premium, modern web-based implementation of the traditional board game Go (囲碁), built with React, TypeScript, and Vite.
+# 🎮 Satori
 
-## 🎮 Features
+### The Game of Go
 
-### Game Modes
-- **Human vs Human** - Play locally with a friend
-- **Human vs AI** - Challenge the computer with 3 difficulty levels:
-  - 🌱 **Easy** - Random play, great for learning
-  - ⚔️ **Medium** - Balanced strategy with captures and defense
-  - 🐉 **Hard** - Advanced play with look-ahead and territory awareness
+*A premium, modern web-based implementation of the ancient strategy game*
 
-### Board Sizes
-- 9×9 (Beginner)
-- 13×13 (Intermediate)
-- 19×19 (Standard)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-go--mind.vercel.app-c9a55a?style=for-the-badge&logo=vercel)](https://go-mind.vercel.app/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-### Game Rules
-- Complete Go rules implementation:
-  - Stone placement and capture
-  - Group detection and liberties
-  - Suicide prevention
-  - Ko rule (simple ko)
-  - Pass and resignation
-  - Chinese area scoring
-  - Configurable komi
+[✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [🎯 How to Play](#-how-to-play) • [🛠️ Tech Stack](#-tech-stack) • [📸 Screenshots](#-screenshots)
 
-### UI Features
-- Premium wooden board with realistic stone rendering
-- Move history with review mode
-- Last move indicator
-- Ghost stone preview on hover
-- Responsive design (desktop, tablet, mobile)
-- Dark theme with elegant typography
-- Rulebook with expandable sections
-- Game over dialog with score breakdown
+---
 
-## 🚀 Getting Started
+</div>
+
+## 🌟 Overview
+
+**Satori** (悟り) is a beautiful, fully-featured Go game that brings the elegance of this 2,500-year-old strategy game to the modern web. Built with a focus on premium design, smooth gameplay, and accessibility.
+
+> *"Go is a game of balance, harmony, and profound simplicity."*
+
+🎮 **[Play Now at go-mind.vercel.app](https://go-mind.vercel.app/)**
+
+---
+
+## ✨ Features
+
+### 🎯 Game Modes
+- **👥 Human vs Human** - Challenge a friend locally
+- **🤖 Human vs AI** - Battle against our intelligent AI opponent
+  - 🌱 **Beginner** - Perfect for learning the basics
+  - ⚔️ **Easy** - Balanced challenge for casual players
+  - 🎯 **Medium** - Strategic gameplay with tactical awareness
+  - 🔥 **Hard** - Advanced AI with deep lookahead
+  - 💀 **Expert** - Maximum difficulty for serious players
+
+### 📐 Board Sizes
+- **9×9** - Quick games, perfect for beginners
+- **13×13** - Intermediate challenge
+- **19×19** - Full-size traditional Go board
+
+### 🎨 Premium Design
+- 🪵 **Realistic wooden board** with authentic texture
+- ⚫ **Beautiful stone rendering** with shadows and gradients
+- 🎭 **Smooth animations** for stone placement
+- 🌙 **Elegant dark theme** inspired by Zen aesthetics
+- 📱 **Fully responsive** - works on desktop, tablet, and mobile
+- 👻 **Ghost stone preview** shows where you'll place your stone
+
+### 🎮 Complete Go Rules
+- ✅ Stone placement and capture mechanics
+- ✅ Group detection and liberty counting
+- ✅ Ko rule implementation
+- ✅ Suicide prevention
+- ✅ Pass and resignation
+- ✅ Chinese area scoring
+- ✅ Configurable komi (compensation points)
+
+### 📊 Game Features
+- 📜 **Move history** - Review every move of the game
+- 🔍 **Review mode** - Navigate through game history
+- 🎯 **Last move indicator** - Never lose track
+- 💡 **Rulebook** - Built-in rules reference
+- 🏆 **Score display** - Real-time territory counting
+- ⏸️ **Undo/redo** - Navigate through moves
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+ and npm
 
 ### Installation
 
-1. **Extract the tar file:**
-   ```bash
-   tar -xzf satori-go-game.tar.gz
-   cd satori-go-game
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open your browser:**
-   Navigate to `http://localhost:3000`
-
-## 🧪 Testing
-
-Run the test suite:
 ```bash
-npm test
+# Clone the repository
+git clone https://github.com/yourusername/satori-go.git
+cd satori-go
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
-The project includes comprehensive tests for:
-- Board operations
-- Group detection
-- Liberty calculation
-- Capture logic
-- Suicide prevention
-- Ko rule
-- Scoring
-- Game state management
-- AI behavior
-- Coordinate system
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 🏗️ Building for Production
+### Build for Production
 
-Create a production build:
 ```bash
+# Build optimized version
 npm run build
-```
 
-The optimized files will be in the `dist/` directory.
-
-Preview the production build:
-```bash
+# Preview production build
 npm run preview
 ```
 
-## 📁 Project Structure
-
-```
-src/
-├── game/              # Pure game engine (no React dependencies)
-│   ├── types.ts       # Type definitions
-│   ├── board.ts       # Board operations
-│   ├── groups.ts      # Group detection (BFS)
-│   ├── capture.ts     # Capture logic
-│   ├── rules.ts       # Move validation
-│   ├── ko.ts          # Ko rule
-│   ├── scoring.ts     # Chinese scoring
-│   ├── ai.ts          # AI implementation
-│   ├── aiLevels.ts    # AI difficulty configs
-│   └── gameState.ts   # State management
-│
-├── components/        # React UI components
-│   ├── GoBoard/       # Board rendering (SVG)
-│   ├── PlayerPanel/   # Player info display
-│   ├── GameControls/  # Pass, Resign, Review
-│   ├── MoveHistory/   # Move list
-│   ├── ScorePanel/    # Final score display
-│   ├── NewGameDialog/ # Game setup modal
-│   ├── GameOverDialog/# Game over modal
-│   ├── GameStatus/    # Current game status
-│   └── Rulebook/      # Rules reference
-│
-├── hooks/             # React hooks
-│   └── useGoGame.ts   # Main game state hook
-│
-├── tests/             # Test files
-│   ├── board.test.ts
-│   ├── groups.test.ts
-│   ├── capture.test.ts
-│   ├── suicide.test.ts
-│   ├── ko.test.ts
-│   ├── scoring.test.ts
-│   ├── gameState.test.ts
-│   ├── ai.test.ts
-│   └── coordinates.test.ts
-│
-├── App.tsx            # Main app component
-├── main.tsx           # Entry point
-└── index.css          # Global styles
-```
+---
 
 ## 🎯 How to Play
 
 ### Basic Rules
+
 1. **Objective**: Control more territory than your opponent
 2. **Turns**: Black plays first, players alternate
 3. **Placement**: Place stones on empty intersections
-4. **Capture**: Surround opponent stones to capture them
-5. **Liberties**: Empty points adjacent to a stone/group
-6. **Ko**: Can't immediately recreate the previous board position
-7. **Suicide**: Can't play a stone with no liberties (unless it captures)
-8. **Pass**: Skip your turn; two consecutive passes end the game
-9. **Scoring**: Stones on board + territory enclosed
+4. **Capture**: Surround opponent's stones to capture them
+5. **Liberties**: Empty points adjacent to stones
+6. **Territory**: Empty points surrounded by your stones
 
 ### Controls
-- **Click** an intersection to place a stone
-- **Pass** button to skip your turn
-- **Resign** button to forfeit the game
-- **New Game** to start a new game
-- **Review** mode to navigate through move history
-- **Rules** button to view the rulebook
 
-## 🎨 Design Philosophy
+| Action | How |
+|--------|-----|
+| Place stone | Click on an intersection |
+| Pass | Click "Pass" button |
+| Resign | Click "Resign" button |
+| New game | Click "New Game" |
+| Review moves | Use ← → buttons or click move history |
+| View rules | Click "Rules" button |
 
-**Satori** (悟り) means "enlightenment" or "understanding" in Japanese.
+### Tips for Beginners
 
-The design follows these principles:
-- **Minimalism** - Clean, uncluttered interface
-- **Zen aesthetics** - Calm, focused experience
-- **Premium feel** - High-quality visuals and interactions
-- **Accessibility** - Works on all devices and screen sizes
-- **Performance** - Fast, smooth gameplay
-
-## 🛠️ Tech Stack
-
-- **React 18** - UI framework
-- **TypeScript** - Type safety
-- **Vite** - Build tool and dev server
-- **Vitest** - Testing framework
-- **CSS3** - Styling with custom properties
-- **SVG** - Board rendering
-
-## 📋 Browser Support
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Mobile browsers (iOS Safari, Chrome Mobile)
-
-## 🐛 Known Limitations
-
-- **Ko Rule**: Implements simple ko (not superko) - sufficient for most games
-- **AI**: Heuristic-based, not using professional Go engines (KataGo, Leela Zero)
-- **Dead Stone Detection**: Not implemented - assumes all stones are alive at game end
-- **Offline Play**: No persistent storage yet
-
-## 🚧 Future Enhancements
-
-- [ ] Integration with KataGo/Leela Zero for stronger AI
-- [ ] Online multiplayer
-- [ ] Game persistence (save/load)
-- [ ] AI move explanations
-- [ ] Positional superko option
-- [ ] Dead stone marking in scoring phase
-- [ ] Sound effects
-- [ ] Additional themes
-
-## 📄 License
-
-This project is created with ❤ by Sohan.
-
-## 🙏 Acknowledgments
-
-- Traditional Go rules and scoring
-- Japanese aesthetic principles
-- Modern web technologies
+- Start with 9×9 boards to learn quickly
+- Focus on connecting your stones
+- Don't play too close to the edge
+- Capture opponent stones to gain territory
+- Use the rulebook if you're unsure about rules
 
 ---
 
+## 🛠️ Tech Stack
+
+### Frontend
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Lightning-fast build tool
+- **CSS3** - Custom styling with CSS variables
+
+### Game Engine
+- **Pure TypeScript** - No external dependencies
+- **Immutable state** - Predictable game logic
+- **Functional architecture** - Clean, testable code
+
+### Testing
+- **Vitest** - Fast unit testing
+- **Comprehensive coverage** - All game rules tested
+
+### Deployment
+- **Vercel** - Lightning-fast hosting
+- **Automatic deployments** - Push to deploy
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+### Game Board
+![Game Board](https://go-mind.vercel.app/og-image.png)
+
+### New Game Dialog
+*Choose your board size, game mode, and AI difficulty*
+
+### Move History
+*Review every move with our intuitive interface*
+
+</div>
+
+---
+
+## 🏗️ Project Structure
+
+```
+satori-go/
+├── src/
+│   ├── components/         # React components
+│   │   ├── GoBoard/       # Board rendering
+│   │   ├── GameControls/  # Game controls
+│   │   ├── MoveHistory/   # Move history panel
+│   │   ├── ScorePanel/    # Score display
+│   │   ├── NewGameDialog/ # New game modal
+│   │   ├── GameOverDialog/# Game over modal
+│   │   ├── PlayerPanel/   # Player info
+│   │   ├── GameStatus/    # Game status
+│   │   └── Rulebook/      # Rules reference
+│   ├── game/              # Game engine (pure logic)
+│   │   ├── types.ts       # Type definitions
+│   │   ├── board.ts       # Board operations
+│   │   ├── groups.ts      # Group detection
+│   │   ├── capture.ts     # Capture logic
+│   │   ├── rules.ts       # Move validation
+│   │   ├── ko.ts          # Ko rule
+│   │   ├── scoring.ts     # Scoring system
+│   │   ├── ai.ts          # AI implementation
+│   │   └── gameState.ts   # State management
+│   ├── hooks/             # React hooks
+│   │   └── useGoGame.ts   # Main game hook
+│   ├── tests/             # Test files
+│   ├── App.tsx            # Main app component
+│   ├── main.tsx           # Entry point
+│   └── index.css          # Global styles
+├── public/                # Static assets
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
+```
+
+---
+
+## 🧪 Testing
+
+Run the test suite:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+```
+
+### Test Coverage
+- ✅ Board operations
+- ✅ Group detection
+- ✅ Capture mechanics
+- ✅ Ko rule
+- ✅ Suicide prevention
+- ✅ Scoring system
+- ✅ AI behavior
+- ✅ Game state management
+
+---
+
+## 🎨 Design Philosophy
+
+**Satori** follows these design principles:
+
+1. **Minimalism** - Clean, uncluttered interface
+2. **Zen Aesthetics** - Calm, focused experience
+3. **Premium Feel** - High-quality visuals and interactions
+4. **Accessibility** - Works on all devices
+5. **Performance** - Fast, smooth gameplay
+
+---
+
+## 🌍 Browser Support
+
+- ✅ Chrome/Edge 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+
+- 🐛 Report bugs
+- 💡 Suggest features
+- 📝 Improve documentation
+- 🔧 Submit pull requests
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Inspired by the ancient game of Go (围碁/囲碁)
+- Design influenced by traditional Japanese aesthetics
+- Built with modern web technologies
+
+---
+
+## 📬 Contact
+
+Created with ❤️ by **Sohan**
+
+🌐 Live Demo: [go-mind.vercel.app](https://go-mind.vercel.app/)
+
+---
+
+<div align="center">
+
 **Enjoy the game!** 🎮
+
+*Place your stones wisely, young player.*
+
+⭐ **Star this repo if you like it!** ⭐
+
+</div>
