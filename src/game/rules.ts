@@ -1,166 +1,135 @@
-/**
- * Move validation and application rules for Go.
- * This is the central rules engine that determines if a move is legal.
- */
-
-import { Stone, Color, Position, GameState, Move, MoveResult, Board } from './types';
-import { getStone, setStone, boardHash } from './board';
-import { getGroupStones, getGroupLiberties } from './groups';
+import { Stone, Color, Position, GameState, Move, MoveResult } from './types';
+import { Board, getStone, setStone, boardHash } from './board';
+import { getGroup } from './groups';
 import { captureOpponentGroups } from './capture';
 import { isKoViolation } from './ko';
 import { calculateScore } from './scoring';
 
-function colorToStone(color: Color): Stone {
-  return color === Color.BLACK ? Stone.BLACK : Stone.WHITE;
-}
-
-/**
- * Validate and apply a move at the given position.
- * Returns either a new game state or a rejection reason.
- * 
- * Move validation order:
- * 1. Game must not be over
- * 2. Position must be on the board
- * 3. Position must be empty
- * 4. After placing and capturing, the placed stone's group must have liberties (no suicide)
- * 5. The resulting board must not violate ko
- */
 export function applyMove(state: GameState, pos: Position): MoveResult {
-  // 1. Game must not be over
+  // Check if game is over
   if (state.isGameOver) {
     return { success: false, reason: 'Game is over' };
   }
-
-  const { size, board, currentPlayer } = state;
-
-  // 2. Position must be on the board
-  if (pos.x < 0 || pos.x >= size || pos.y < 0 || pos.y >= size) {
+  
+  // Check if position is on board
+  if (pos.x < 0 || pos.x >= state.size || pos.y < 0 || pos.y >= state.size) {
     return { success: false, reason: 'Position is off the board' };
   }
-
-  // 3. Position must be empty
-  if (getStone(board, pos, size) !== Stone.EMPTY) {
+  
+  // Check if position is empty
+  if (getStone(state.board, pos, state.size) !== Stone.EMPTY) {
     return { success: false, reason: 'Position is already occupied' };
   }
-
-  const stoneColor = colorToStone(currentPlayer);
-
-  // Place the stone tentatively
-  let newBoard = setStone(board, pos, size, stoneColor);
-
-  // 4. Capture opponent groups with zero liberties
-  const captureResult = captureOpponentGroups(newBoard, pos, stoneColor, size);
+  
+  const stoneColor = state.currentPlayer === Color.BLACK ? Stone.BLACK : Stone.WHITE;
+  
+  // Place stone tentatively
+  let newBoard = setStone(state.board, pos, state.size, stoneColor);
+  
+  // Capture opponent groups
+  const captureResult = captureOpponentGroups(newBoard, pos, stoneColor, state.size);
   newBoard = captureResult.board;
-
-  // 5. Check suicide: after captures, does the placed stone's group have liberties?
-  const ownGroupStones = getGroupStones(newBoard, pos, size);
-  const ownLiberties = getGroupLiberties(newBoard, ownGroupStones, size);
-
-  if (ownLiberties.length === 0) {
+  
+  // Check for suicide (own group has no liberties after capture)
+  const ownGroup = getGroup(newBoard, pos, state.size);
+  if (ownGroup.liberties.length === 0) {
     return { success: false, reason: 'Illegal move: suicide' };
   }
-
-  // 6. Check ko: does the new board position match the prohibited previous position?
+  
+  // Check for ko violation
   if (isKoViolation(newBoard, state.previousBoardHash)) {
     return { success: false, reason: 'Illegal move: ko' };
   }
-
-  // Calculate the ko-check hash for the next move.
-  // In simple ko, the prohibited position is the board BEFORE this move.
-  const koHash = boardHash(board);
-
-  // Build the move record
+  
+  // Create move record
   const move: Move = {
-    moveNumber: state.moveHistory.length + 1,
-    color: currentPlayer,
     position: pos,
-    capturedStones: captureResult.capturedPositions,
+    color: state.currentPlayer,
+    moveNumber: state.moveHistory.length + 1,
+    capturedStones: captureResult.capturedStones,
     type: 'play',
   };
-
-  // Calculate captures
-  const capturedCount = captureResult.capturedPositions.length;
-  const blackCaptures = currentPlayer === Color.BLACK
-    ? state.blackCaptures + capturedCount
-    : state.blackCaptures;
-  const whiteCaptures = currentPlayer === Color.WHITE
-    ? state.whiteCaptures + capturedCount
-    : state.whiteCaptures;
-
-  // Build new state
+  
+  // Update captures
+  const newBlackCaptures = state.blackCaptures + 
+    (state.currentPlayer === Color.BLACK ? captureResult.capturedStones.length : 0);
+  const newWhiteCaptures = state.whiteCaptures + 
+    (state.currentPlayer === Color.WHITE ? captureResult.capturedStones.length : 0);
+  
+  // Create new state
   const newState: GameState = {
     ...state,
     board: newBoard,
-    currentPlayer: currentPlayer === Color.BLACK ? Color.WHITE : Color.BLACK,
+    currentPlayer: state.currentPlayer === Color.BLACK ? Color.WHITE : Color.BLACK,
     moveHistory: [...state.moveHistory, move],
     consecutivePasses: 0,
-    blackCaptures,
-    whiteCaptures,
-    previousBoardHash: koHash,
+    blackCaptures: newBlackCaptures,
+    whiteCaptures: newWhiteCaptures,
+    previousBoardHash: boardHash(state.board),
   };
-
+  
   return { success: true, newState };
 }
 
-/**
- * Apply a pass move.
- */
 export function applyPass(state: GameState): GameState {
-  if (state.isGameOver) return state;
-
+  if (state.isGameOver) {
+    return state;
+  }
+  
   const move: Move = {
-    moveNumber: state.moveHistory.length + 1,
-    color: state.currentPlayer,
     position: null,
+    color: state.currentPlayer,
+    moveNumber: state.moveHistory.length + 1,
     capturedStones: [],
     type: 'pass',
   };
-
-  const consecutivePasses = state.consecutivePasses + 1;
-  const isGameOver = consecutivePasses >= 2;
-
-  // If game is over by two passes, calculate the winner based on scoring
-  let winner: Color | null = state.winner;
-  let winReason: 'resignation' | 'score' | null = state.winReason;
+  
+  const newConsecutivePasses = state.consecutivePasses + 1;
+  const isGameOver = newConsecutivePasses >= 2;
+  
+  let winner: Color | null = null;
+  let winReason: 'resignation' | 'score' | null = null;
   
   if (isGameOver) {
+    // Calculate score to determine winner
     const score = calculateScore(state.board, state.size, state.komi);
     winner = score.winner;
     winReason = 'score';
   }
-
+  
   return {
     ...state,
     currentPlayer: state.currentPlayer === Color.BLACK ? Color.WHITE : Color.BLACK,
     moveHistory: [...state.moveHistory, move],
-    consecutivePasses,
+    consecutivePasses: newConsecutivePasses,
     isGameOver,
     winner,
     winReason,
+    previousBoardHash: isGameOver ? state.previousBoardHash : boardHash(state.board),
   };
 }
 
-/**
- * Apply a resignation.
- */
 export function applyResign(state: GameState): GameState {
-  if (state.isGameOver) return state;
-
+  if (state.isGameOver) {
+    return state;
+  }
+  
   const move: Move = {
-    moveNumber: state.moveHistory.length + 1,
-    color: state.currentPlayer,
     position: null,
+    color: state.currentPlayer,
+    moveNumber: state.moveHistory.length + 1,
     capturedStones: [],
     type: 'resign',
   };
-
+  
   const winner = state.currentPlayer === Color.BLACK ? Color.WHITE : Color.BLACK;
-
+  
   return {
     ...state,
     moveHistory: [...state.moveHistory, move],
     isGameOver: true,
     winner,
     winReason: 'resignation',
+    previousBoardHash: boardHash(state.board),
   };
 }

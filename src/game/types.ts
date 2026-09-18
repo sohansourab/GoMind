@@ -1,100 +1,69 @@
-/**
- * Core types for the Go game engine.
- * The engine is completely independent of React/UI.
- */
-
-export enum Color {
-  BLACK = 'BLACK',
-  WHITE = 'WHITE',
-}
-
 export enum Stone {
   EMPTY = 'EMPTY',
   BLACK = 'BLACK',
   WHITE = 'WHITE',
 }
 
+export enum Color {
+  BLACK = 'BLACK',
+  WHITE = 'WHITE',
+}
+
 export interface Position {
-  readonly x: number;
-  readonly y: number;
+  x: number;
+  y: number;
 }
-
-export type Coordinate = string; // e.g., "A1", "T19"
-
-export type Board = readonly Stone[];
-
-export interface BoardConfig {
-  readonly size: number; // 9, 13, or 19
-}
-
-export type MoveType = 'play' | 'pass' | 'resign';
 
 export interface Move {
-  readonly moveNumber: number;
-  readonly color: Color;
-  readonly position: Position | null; // null for pass/resign
-  readonly capturedStones: readonly Position[];
-  readonly type: MoveType;
+  position: Position | null;
+  color: Color;
+  moveNumber: number;
+  capturedStones: Position[];
+  type: 'play' | 'pass' | 'resign';
 }
 
 export interface GameState {
-  readonly board: Board;
-  readonly size: number;
-  readonly currentPlayer: Color;
-  readonly moveHistory: readonly Move[];
-  readonly consecutivePasses: number;
-  readonly blackCaptures: number;
-  readonly whiteCaptures: number;
-  readonly previousBoardHash: string | null; // For ko detection
-  readonly isGameOver: boolean;
-  readonly winner: Color | null;
-  readonly winReason: 'resignation' | 'score' | null;
-  readonly komi: number;
-  readonly ruleset: 'chinese';
-  readonly playerMode: PlayerMode;
-  readonly aiDifficulty: AiDifficulty;
+  board: readonly Stone[];
+  size: number;
+  currentPlayer: Color;
+  moveHistory: readonly Move[];
+  consecutivePasses: number;
+  blackCaptures: number;
+  whiteCaptures: number;
+  previousBoardHash: string | null;
+  isGameOver: boolean;
+  winner: Color | null;
+  winReason: 'resignation' | 'score' | null;
+  komi: number;
+  ruleset: 'chinese';
+  playerMode: 'human-vs-human' | 'human-vs-computer';
+  aiDifficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 }
-
-export type PlayerMode = 'human-vs-human' | 'human-vs-computer';
-export type AiDifficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 
 export interface GameConfig {
-  readonly size: number;
-  readonly komi: number;
-  readonly ruleset: 'chinese';
-  readonly playerMode?: PlayerMode;
-  readonly aiDifficulty?: AiDifficulty;
+  size: number;
+  komi: number;
+  ruleset: 'chinese';
+  playerMode?: 'human-vs-human' | 'human-vs-computer';
+  aiDifficulty?: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 }
-
-export interface GameResult {
-  readonly winner: Color;
-  readonly winReason: 'resignation' | 'score';
-  readonly blackScore: number;
-  readonly whiteScore: number;
-  readonly blackStones: number;
-  readonly whiteStones: number;
-  readonly blackTerritory: number;
-  readonly whiteTerritory: number;
-  readonly komi: number;
-}
-
-export interface Group {
-  readonly stones: readonly Position[];
-  readonly liberties: readonly Position[];
-}
-
-export type MoveResult =
-  | { success: true; newState: GameState }
-  | { success: false; reason: string };
 
 export interface ScoreResult {
-  readonly blackStones: number;
-  readonly whiteStones: number;
-  readonly blackTerritory: number;
-  readonly whiteTerritory: number;
-  readonly komi: number;
-  readonly blackTotal: number;
-  readonly whiteTotal: number;
-  readonly winner: Color;
-  readonly margin: number;
+  blackStones: number;
+  whiteStones: number;
+  blackTerritory: number;
+  whiteTerritory: number;
+  komi: number;
+  blackTotal: number;
+  whiteTotal: number;
+  winner: Color;
+  margin: number;
+}
+
+export type AiDifficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
+
+export interface MoveResult {
+  success: boolean;
+  reason?: string;
+  newState?: GameState;
 }

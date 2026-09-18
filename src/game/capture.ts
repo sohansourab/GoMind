@@ -1,56 +1,55 @@
-/**
- * Capture logic for Go.
- * When a stone is placed, opponent groups that have zero liberties are captured.
- */
-
-import { Stone, Position, Board } from './types';
-import { getStone, setStone, getNeighbors } from './board';
-import { getGroupStones, getGroupLiberties } from './groups';
+import { Stone, Position } from './types';
+import { Board, getStone, setStone } from './board';
+import { getGroup } from './groups';
 
 export interface CaptureResult {
-  readonly board: Board;
-  readonly capturedPositions: Position[];
+  board: Board;
+  capturedStones: Position[];
 }
 
-/**
- * After placing a stone, find and remove all opponent groups with zero liberties.
- * Returns the new board and the list of captured positions.
- */
 export function captureOpponentGroups(
   board: Board,
   pos: Position,
-  playerColor: Stone,
+  stoneColor: Stone,
   size: number
 ): CaptureResult {
-  const opponentColor = playerColor === Stone.BLACK ? Stone.WHITE : Stone.BLACK;
-  let currentBoard = board;
-  const capturedPositions: Position[] = [];
+  const opponentColor = stoneColor === Stone.BLACK ? Stone.WHITE : Stone.BLACK;
+  let newBoard = board;
+  const capturedStones: Position[] = [];
 
-  // Check all neighboring opponent groups
-  const neighbors = getNeighbors(pos, size);
+  // Check all neighboring positions for opponent groups
   const checkedGroups = new Set<string>();
-
-  for (const neighbor of neighbors) {
-    if (getStone(currentBoard, neighbor, size) !== opponentColor) continue;
-
-    // Get the group for this neighbor
-    const groupStones = getGroupStones(currentBoard, neighbor, size);
-    const groupKey = groupStones.map(s => `${s.x},${s.y}`).sort().join('|');
-
-    if (checkedGroups.has(groupKey)) continue;
-    checkedGroups.add(groupKey);
-
-    // Calculate liberties of this group
-    const liberties = getGroupLiberties(currentBoard, groupStones, size);
-
-    if (liberties.length === 0) {
-      // Capture this group - remove all stones
-      for (const stone of groupStones) {
-        currentBoard = setStone(currentBoard, stone, size, Stone.EMPTY);
-        capturedPositions.push(stone);
+  
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      if (Math.abs(dx) + Math.abs(dy) !== 1) continue; // Only orthogonal
+      
+      const neighborPos = { x: pos.x + dx, y: pos.y + dy };
+      if (neighborPos.x < 0 || neighborPos.x >= size || 
+          neighborPos.y < 0 || neighborPos.y >= size) continue;
+      
+      const neighborStone = getStone(newBoard, neighborPos, size);
+      if (neighborStone !== opponentColor) continue;
+      
+      const groupKey = `${neighborPos.x},${neighborPos.y}`;
+      if (checkedGroups.has(groupKey)) continue;
+      
+      const group = getGroup(newBoard, neighborPos, size);
+      
+      // Mark all stones in this group as checked
+      for (const stone of group.stones) {
+        checkedGroups.add(`${stone.x},${stone.y}`);
+      }
+      
+      // If group has no liberties, capture it
+      if (group.liberties.length === 0) {
+        for (const stone of group.stones) {
+          newBoard = setStone(newBoard, stone, size, Stone.EMPTY);
+          capturedStones.push(stone);
+        }
       }
     }
   }
 
-  return { board: currentBoard, capturedPositions };
+  return { board: newBoard, capturedStones };
 }
