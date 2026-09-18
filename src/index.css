@@ -806,6 +806,14 @@ body {
   letter-spacing: 0.03em;
 }
 
+.winner-announce.win {
+  color: #4ade80;
+}
+
+.winner-announce.lose {
+  color: #f87171;
+}
+
 .win-method {
   display: block;
   font-size: 0.8rem;

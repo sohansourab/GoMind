@@ -11,7 +11,10 @@ interface GameOverDialogProps {
 export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOverDialogProps) {
   const { winner, winReason, playerMode } = gameState;
   const isVsComputer = playerMode === 'human-vs-computer';
-  const humanWon = winner === Color.BLACK;
+  
+  // In human vs computer, human is always Black
+  const humanColor = Color.BLACK;
+  const humanWon = winner === humanColor;
 
   // Lock body scroll when modal is open
   React.useEffect(() => {
@@ -22,52 +25,75 @@ export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOve
     };
   }, []);
 
+  // Determine result message
+  const getResultMessage = () => {
+    if (winReason === 'resignation') {
+      if (isVsComputer) {
+        return {
+          title: humanWon ? 'You Win!' : 'You Lose',
+          subtitle: humanWon ? 'Computer resigned' : 'You resigned',
+          isWin: humanWon,
+        };
+      } else {
+        return {
+          title: winner === Color.BLACK ? 'Black Wins' : 'White Wins',
+          subtitle: 'by resignation',
+          isWin: null, // Not applicable for human vs human
+        };
+      }
+    } else if (score) {
+      if (isVsComputer) {
+        return {
+          title: humanWon ? 'You Win!' : 'You Lose',
+          subtitle: `by ${score.margin} point${score.margin !== 1 ? 's' : ''}`,
+          isWin: humanWon,
+        };
+      } else {
+        return {
+          title: score.winner === Color.BLACK ? 'Black Wins' : 'White Wins',
+          subtitle: `by ${score.margin} point${score.margin !== 1 ? 's' : ''}`,
+          isWin: null,
+        };
+      }
+    }
+    return null;
+  };
+
+  const result = getResultMessage();
+
   return (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog game-over-dialog" onClick={e => e.stopPropagation()}>
         <h2>Game Over</h2>
 
         <div className="dialog-content">
-          <div className="game-over-result">
-          {winReason === 'resignation' ? (
-            <div className="result-text">
-              <span className="winner-announce">
-                {isVsComputer
-                  ? (humanWon ? 'You Win' : 'Computer Wins')
-                  : `${winner === Color.BLACK ? 'Black' : 'White'} Wins`
-                }
-              </span>
-              <span className="win-method">
-                {isVsComputer
-                  ? (humanWon ? 'Computer resigned' : 'You resigned')
-                  : 'by resignation'
-                }
-              </span>
-            </div>
-          ) : score ? (
-            <div className="result-text">
-              <span className="winner-announce">
-                {isVsComputer
-                  ? (humanWon ? 'You Win' : 'Computer Wins')
-                  : `${score.winner === Color.BLACK ? 'Black' : 'White'} Wins`
-                }
-              </span>
-              <span className="win-method">
-                by {score.margin} point{score.margin !== 1 ? 's' : ''}
-              </span>
-              <div className="final-scores">
-                <div className="final-score-item">
-                  <span className="player-stone black small" />
-                  <span>{isVsComputer ? 'You' : 'Black'}: {score.blackTotal}</span>
-                </div>
-                <div className="final-score-item">
-                  <span className="player-stone white small" />
-                  <span>{isVsComputer ? 'Computer' : 'White'}: {score.whiteTotal}</span>
-                </div>
+          {result && (
+            <div className="game-over-result">
+              <div className="result-text">
+                <span className={`winner-announce ${result.isWin === true ? 'win' : result.isWin === false ? 'lose' : ''}`}>
+                  {result.title}
+                </span>
+                <span className="win-method">
+                  {result.subtitle}
+                </span>
+                {score && (
+                  <div className="final-scores">
+                    <div className="final-score-item">
+                      <span className="player-stone black small" />
+                      <span>{isVsComputer ? 'You' : 'Black'}: {score.blackTotal}</span>
+                    </div>
+                    <div className="final-score-item">
+                      <span className="player-stone white small" />
+                      <span>{isVsComputer ? 'Computer' : 'White'}: {score.whiteTotal}</span>
+                    </div>
+                    <div className="final-score-item">
+                      <span>Komi: {score.komi}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          ) : null}
-        </div>
+          )}
         </div>
 
         <div className="dialog-actions">
