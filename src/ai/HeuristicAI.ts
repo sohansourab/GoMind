@@ -6,26 +6,17 @@
  */
 
 import { AIPlayer, AiMoveResult, AiHintResult, AiAnalysis, AiDifficulty } from './types';
-import { GameState, Position, Color, AiDifficulty as LegacyAiDifficulty } from '../game/types';
+import { GameState, Position, Color } from '../game/types';
+import type { AiDifficulty as LegacyAiDifficulty } from '../game/types';
 import { chooseMove, shouldPass as legacyShouldPass } from '../game/ai';
 
 /**
  * Map new difficulty levels to legacy difficulty levels
- * The legacy AI only supports 'easy', 'medium', 'hard'
+ * The legacy AI supports 'beginner', 'easy', 'medium', 'hard', 'expert'
  */
 function mapDifficulty(newDifficulty: AiDifficulty): LegacyAiDifficulty {
-  switch (newDifficulty) {
-    case 'beginner':
-    case 'easy':
-      return 'easy';
-    case 'medium':
-      return 'medium';
-    case 'hard':
-    case 'expert':
-      return 'hard';
-    default:
-      return 'medium';
-  }
+  // All 5 levels are now supported directly
+  return newDifficulty;
 }
 
 /**

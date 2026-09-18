@@ -22,3 +22,7 @@ export { HeuristicAI, createHeuristicAI } from './HeuristicAI';
 
 // Factory
 export { createAIPlayer } from './factory';
+
+// Coach (Future Gemini Integration)
+export { GeminiCoach, createGeminiCoach } from './GeminiCoach';
+export type { CoachExplanation, MoveExplanation, PositionAnalysis } from './GeminiCoach';

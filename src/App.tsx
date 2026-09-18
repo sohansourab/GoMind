@@ -21,6 +21,9 @@ export default function App() {
     lastMoveMessage,
     score,
     isAiThinking,
+    aiStatus,
+    hintPosition,
+    aiSettings,
     handleIntersectionClick,
     handlePass,
     handleResign,
@@ -29,6 +32,9 @@ export default function App() {
     handleReviewNext,
     handleReviewJumpTo,
     handleExitReview,
+    handleRequestHint,
+    handleClearHint,
+    handleUpdateAiSettings,
   } = useGoGame();
 
   const [showNewGameDialog, setShowNewGameDialog] = useState(false);
@@ -81,6 +87,7 @@ export default function App() {
               lastMovePosition={lastMovePosition}
               currentPlayer={currentPlayerStone}
               disabled={gameState.isGameOver || reviewMode || isAiThinking}
+              hintPosition={hintPosition}
             />
           </div>
           {isAiThinking && (
@@ -120,14 +127,18 @@ export default function App() {
             label={isVsComputer ? 'You' : 'Black'}
             captures={gameState.blackCaptures}
             isActive={!gameState.isGameOver && gameState.currentPlayer === Color.BLACK && !reviewMode}
-            isAiThinking={isVsComputer && isAiThinking && gameState.currentPlayer === Color.BLACK}
+            isAiThinking={isAiThinking && gameState.currentPlayer === Color.BLACK}
+            isAi={false}
           />
           <PlayerPanel
             color={Color.WHITE}
-            label={isVsComputer ? 'Computer' : 'White'}
+            label={isVsComputer ? 'Satori AI' : 'White'}
             captures={gameState.whiteCaptures}
             isActive={!gameState.isGameOver && gameState.currentPlayer === Color.WHITE && !reviewMode}
-            isAiThinking={isVsComputer && isAiThinking && gameState.currentPlayer === Color.WHITE}
+            isAiThinking={isAiThinking && gameState.currentPlayer === Color.WHITE}
+            isAi={isVsComputer}
+            aiStatus={isVsComputer ? aiStatus : undefined}
+            aiDifficulty={isVsComputer ? gameState.aiDifficulty : undefined}
           />
 
           {/* Game Status */}
@@ -149,6 +160,11 @@ export default function App() {
             onReviewPrevious={handleReviewPrevious}
             onReviewNext={handleReviewNext}
             onExitReview={handleExitReview}
+            onRequestHint={handleRequestHint}
+            onClearHint={handleClearHint}
+            hintPosition={hintPosition}
+            hintsEnabled={aiSettings.hintsEnabled}
+            isHumanTurn={!isVsComputer || gameState.currentPlayer === Color.BLACK}
           />
 
           {/* Score (when game over) */}

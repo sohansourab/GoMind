@@ -1,9 +1,13 @@
 /**
  * AI difficulty levels for Go.
  * 
+ * Beginner: Almost random. Very weak tactical awareness. Fills own eyes sometimes.
  * Easy: Random-ish play with minimal heuristics. Makes frequent mistakes.
  * Medium: Reasonable heuristic play. Captures, defends, attacks.
  * Hard: Stronger evaluation with look-ahead and better territory sense.
+ * Expert: Strongest heuristic play. Deeper lookahead, strong territory awareness.
+ * 
+ * NOTE: These are application difficulty levels, not official Go ranks.
  */
 
 import type { AiDifficulty } from './types';
@@ -15,6 +19,23 @@ export type { AiDifficulty };
  * Controls how the AI evaluates and selects moves.
  */
 export const AI_CONFIGS: Record<AiDifficulty, AiLevelConfig> = {
+  beginner: {
+    // Almost random play - barely any tactical awareness
+    captureWeight: 5,       // Only captures very obvious situations
+    defenseWeight: 1,       // Almost never saves own groups
+    attackWeight: 1,        // Almost never attacks
+    proximityWeight: 0.2,   // Minimal connection preference
+    influenceWeight: 0,     // No wider influence awareness
+    starPointWeight: 0,     // No opening theory
+    linePreferenceWeight: 0,// No line preference
+    eyeAvoidanceStrength: 0.15, // Often fills own eyes (85% chance to ignore)
+    randomness: 25,         // Very high randomness
+    lookAheadDepth: 0,      // No search
+    passThreshold: -3,      // Passes very readily
+    topSelectionPool: 15,   // Very wide selection pool
+    selfAtariPenalty: 2,    // Almost no self-atari avoidance
+    territoryWeight: 0,     // No territory awareness
+  },
   easy: {
     // Capture weight: low (only captures very obvious ones)
     captureWeight: 10,
@@ -76,6 +97,23 @@ export const AI_CONFIGS: Record<AiDifficulty, AiLevelConfig> = {
     topSelectionPool: 2,
     selfAtariPenalty: 30,
     territoryWeight: 5,
+  },
+  expert: {
+    // Strongest heuristic play - deeper search, stronger territory awareness
+    captureWeight: 50,      // Very strong capture awareness
+    defenseWeight: 45,      // Very strong defense
+    attackWeight: 20,       // Strong attacking play
+    proximityWeight: 5,     // Strong connection preference
+    influenceWeight: 3,     // Strong wider influence awareness
+    starPointWeight: 7,     // Strong opening theory
+    linePreferenceWeight: 5,// Strong line preference
+    eyeAvoidanceStrength: 1.0, // Never fills own eyes
+    randomness: 0.5,        // Minimal randomness
+    lookAheadDepth: 3,      // Deeper 3-ply lookahead
+    passThreshold: -20,     // Resists passing unless necessary
+    topSelectionPool: 1,    // Always picks the single best move
+    selfAtariPenalty: 50,   // Very strong self-atari avoidance
+    territoryWeight: 8,     // Strong territory awareness
   },
 };
 

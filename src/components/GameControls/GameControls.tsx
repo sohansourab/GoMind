@@ -11,6 +11,11 @@ interface GameControlsProps {
   onReviewPrevious: () => void;
   onReviewNext: () => void;
   onExitReview: () => void;
+  onRequestHint?: () => void;
+  onClearHint?: () => void;
+  hintPosition?: { x: number; y: number } | null;
+  hintsEnabled?: boolean;
+  isHumanTurn?: boolean;
 }
 
 export function GameControls({
@@ -23,7 +28,15 @@ export function GameControls({
   onReviewPrevious,
   onReviewNext,
   onExitReview,
+  onRequestHint,
+  onClearHint,
+  hintPosition,
+  hintsEnabled = true,
+  isHumanTurn = true,
 }: GameControlsProps) {
+  const showHintButton = hintsEnabled && !gameState.isGameOver && !reviewMode && isHumanTurn && !isAiThinking;
+  const hasActiveHint = hintPosition !== null;
+
   return (
     <div className="game-controls">
       {!gameState.isGameOver && !reviewMode && (
@@ -42,6 +55,16 @@ export function GameControls({
           >
             Resign
           </button>
+          {showHintButton && onRequestHint && (
+            <button
+              className={`btn ${hasActiveHint ? 'btn-hint-active' : 'btn-hint'}`}
+              onClick={hasActiveHint && onClearHint ? onClearHint : onRequestHint}
+              disabled={isAiThinking}
+              title={hasActiveHint ? 'Clear hint' : 'Get hint'}
+            >
+              {hasActiveHint ? '✕ Clear' : '💡 Hint'}
+            </button>
+          )}
         </>
       )}
 
