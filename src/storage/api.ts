@@ -20,13 +20,15 @@ function generateGameId(): string {
 export async function saveGame(
   gameState: GameState,
   isCompleted: boolean = false,
-  existingId?: string
+  existingId?: string,
+  name?: string
 ): Promise<string> {
   const now = Date.now();
   const id = existingId || generateGameId();
 
   const savedGame: SavedGame = {
     id,
+    name,
     createdAt: existingId ? now : now, // Will be updated if existing
     updatedAt: now,
     isCompleted,
@@ -57,10 +59,14 @@ export async function saveGame(
   if (!existingId) {
     savedGame.createdAt = now;
   } else {
-    // Load existing to preserve createdAt
+    // Load existing to preserve createdAt and name
     const existing = await storage.loadGame(id);
     if (existing) {
       savedGame.createdAt = existing.createdAt;
+      // Preserve existing name if not provided
+      if (!name && existing.name) {
+        savedGame.name = existing.name;
+      }
     }
   }
 
@@ -130,6 +136,33 @@ export async function isStorageAvailable(): Promise<boolean> {
  */
 function calculateScoreFromState(gameState: GameState) {
   return calculateScore(gameState.board, gameState.size, gameState.komi);
+}
+
+/**
+ * Generate a default name for a game
+ */
+export function generateDefaultGameName(game: SavedGame): string {
+  const sizeStr = `${game.size}×${game.size}`;
+  const modeStr = game.playerMode === 'human-vs-computer' ? 'vs Computer' : 'vs Human';
+  const difficultyStr = game.aiDifficulty ? ` (${game.aiDifficulty})` : '';
+  const date = new Date(game.createdAt);
+  const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  
+  return `${sizeStr} ${modeStr}${difficultyStr} - ${dateStr}`;
+}
+
+/**
+ * Rename a game
+ */
+export async function renameGame(id: string, name: string): Promise<void> {
+  const game = await storage.loadGame(id);
+  if (!game) {
+    throw new Error('Game not found');
+  }
+  
+  game.name = name;
+  game.updatedAt = Date.now();
+  await storage.saveGame(game);
 }
 
 /**
