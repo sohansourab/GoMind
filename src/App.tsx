@@ -7,6 +7,7 @@ import { MoveHistory } from './components/MoveHistory/MoveHistory';
 import { ScorePanel } from './components/ScorePanel/ScorePanel';
 import { NewGameDialog } from './components/NewGameDialog/NewGameDialog';
 import { GameOverDialog } from './components/GameOverDialog/GameOverDialog';
+import { Rulebook } from './components/Rulebook/Rulebook';
 import { Stone, Color, Position } from './game/types';
 import { getLastMove } from './game/gameState';
 
@@ -89,6 +90,8 @@ export default function App() {
         </div>
 
         <div className="sidebar">
+          {gameState.moveHistory.length === 0 && <Rulebook />}
+
           <GameInfo
             gameState={gameState}
             lastMoveMessage={lastMoveMessage}
@@ -125,6 +128,15 @@ export default function App() {
           />
         </div>
       </main>
+
+      <footer className="app-footer">
+        <div className="footer-credit">
+          <span>with</span>
+          <span className="footer-heart">❤</span>
+          <span>created by</span>
+          <span className="footer-name">sohan</span>
+        </div>
+      </footer>
 
       {showNewGameDialog && (
         <NewGameDialog
