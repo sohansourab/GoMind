@@ -168,6 +168,8 @@ npm run preview
 
 ### New Game Dialog
 *Choose your board size, game mode, and AI difficulty*
+![Game dialog](https://github.com/sohansourab/GoMind/blob/main/dia.jpeg?raw=true)
+
 
 ### Move History
 *Review every move with our intuitive interface*
