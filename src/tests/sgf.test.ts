@@ -121,6 +121,15 @@ describe('SGF Module', () => {
       expect(sgf).toContain('PB[Black]');
       expect(sgf).toContain('PW[White]');
     });
+
+    it('should separate properties with spaces for readability', () => {
+      const state = createGame({ size: 9, komi: 6.5, ruleset: 'chinese' });
+      const sgf = serializeSgf(state);
+      
+      // Properties should be separated by spaces
+      expect(sgf).toContain('GM[1] FF[4]');
+      expect(sgf).toContain('SZ[9] KM[6.5]');
+    });
   });
 
   describe('Parser', () => {
@@ -346,6 +355,32 @@ SZ[9]
       if (result.success) {
         expect(result.game.moves[0].position).toEqual({ x: 0, y: 0 });
         expect(result.game.moves[1].position).toEqual({ x: 18, y: 18 });
+      }
+    });
+
+    it('should handle traditional tt pass notation on all board sizes', () => {
+      // Test 9x9
+      const sgf9 = '(;GM[1]SZ[9];B[ee];W[tt])';
+      const result9 = parseSgf(sgf9);
+      expect(result9.success).toBe(true);
+      if (result9.success) {
+        expect(result9.game.moves[1].position).toBeNull();
+      }
+
+      // Test 13x13
+      const sgf13 = '(;GM[1]SZ[13];B[gg];W[tt])';
+      const result13 = parseSgf(sgf13);
+      expect(result13.success).toBe(true);
+      if (result13.success) {
+        expect(result13.game.moves[1].position).toBeNull();
+      }
+
+      // Test 19x19
+      const sgf19 = '(;GM[1]SZ[19];B[aa];W[tt])';
+      const result19 = parseSgf(sgf19);
+      expect(result19.success).toBe(true);
+      if (result19.success) {
+        expect(result19.game.moves[1].position).toBeNull();
       }
     });
   });

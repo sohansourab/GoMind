@@ -12,8 +12,8 @@ import { SgfGame, SgfGameInfo, SgfMove, SgfParseResponse } from './types';
  * Internal: x,y (0-indexed, y=0 is top)
  */
 function sgfCoordToPosition(coord: string, size: number): Position | null {
-  if (coord === '' || coord === 'tt' && size === 19) {
-    // Empty string or 'tt' on 19x19 is a pass
+  if (coord === '' || coord === 'tt') {
+    // Empty string or 'tt' is a pass (on any board size)
     return null;
   }
   

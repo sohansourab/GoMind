@@ -139,7 +139,7 @@ function formatGameInfo(info: SgfGameInfo): string {
     props.push(`TM[${info.timeLimit}]`);
   }
   
-  return props.join('');
+  return props.join(' ');
 }
 
 /**
