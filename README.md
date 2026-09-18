@@ -164,7 +164,7 @@ npm run preview
 <div align="center">
 
 ### Game Board
-![Game Board](https://go-mind.vercel.app/og-image.png)
+![Satori Game Board](https://github.com/sohansourab/GoMind/blob/main/gameboard.jpeg)
 
 ### New Game Dialog
 *Choose your board size, game mode, and AI difficulty*
