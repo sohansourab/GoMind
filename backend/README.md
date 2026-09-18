@@ -1,22 +1,29 @@
 # Satori Backend
 
-FastAPI backend for the Satori Go game application. This backend will eventually host KataGo for position analysis and Gemini for AI coaching.
+FastAPI backend for the Satori Go game application. Provides KataGo-powered position analysis.
 
 ## Current Status
 
-**Phase 3: Backend Infrastructure** - API contracts established, no AI integration yet.
+**Phase 4: KataGo Integration** - Real KataGo analysis implemented.
 
 ### Implemented Endpoints
 
 - `GET /health` - Health check endpoint
 - `GET /analysis/status` - Analysis service status
-- `POST /analysis/` - Position analysis (returns "not implemented")
+- `POST /analysis/` - **Real KataGo position analysis** ✅
 - `GET /coach/status` - Coaching service status  
 - `POST /coach/` - AI coaching (returns "not implemented")
 
+### Features
+
+- ✅ **Real KataGo analysis** - Win rates, best moves, score estimates
+- ✅ **Multiple board sizes** - 9×9, 13×13, 19×19
+- ✅ **Process management** - Automatic engine lifecycle
+- ✅ **Concurrent requests** - Thread-safe analysis
+- ✅ **Error handling** - Graceful degradation
+
 ### Planned Integration
 
-- **KataGo** - Position analysis, move suggestions, win rate estimation
 - **Gemini** - Strategic explanations, move coaching, game review
 
 ## Setup
