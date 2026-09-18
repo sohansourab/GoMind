@@ -8,6 +8,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { GameState, GameConfig, Position, ScoreResult, Board, Color } from '../game/types';
 import { createGame, playStone, pass, resign, getScore, getBoardAtMove } from '../game/gameState';
 import { chooseMove, shouldPass } from '../game/ai';
+import { saveGame, loadSettings, saveSettings, getActiveGame } from '../storage';
 
 export interface UseGoGameReturn {
   gameState: GameState;
@@ -44,7 +45,30 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
   const [reviewMode, setReviewMode] = useState(false);
   const [reviewMoveIndex, setReviewMoveIndex] = useState(0);
   const [isAiThinking, setIsAiThinking] = useState(false);
+  const [gameId, setGameId] = useState<string | null>(null);
   const aiMoveVersionRef = useRef(0);
+  const isInitialized = useRef(false);
+
+  // Load saved game on mount
+  useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
+    const loadSavedGame = async () => {
+      try {
+        const activeGame = await getActiveGame();
+        if (activeGame) {
+          setGameState(activeGame.gameState);
+          setGameId(activeGame.id);
+        }
+      } catch (error) {
+        console.error('Failed to load saved game:', error);
+        // Continue with default game
+      }
+    };
+
+    loadSavedGame();
+  }, []);
 
   const handleIntersectionClick = useCallback((pos: Position) => {
     if (reviewMode) return;
@@ -85,6 +109,7 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
     setLastMoveMessage(null);
     setReviewMode(false);
     setReviewMoveIndex(0);
+    setGameId(null); // Clear game ID so a new game is created
   }, []);
 
   const handleLoadGameState = useCallback((state: GameState) => {
@@ -187,6 +212,31 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
       setIsAiThinking(false);
     }
   }, [gameState.isGameOver, gameState.playerMode]);
+
+  // Auto-save game state after important changes
+  useEffect(() => {
+    // Don't save during initialization
+    if (!isInitialized.current) return;
+
+    // Don't save during review mode
+    if (reviewMode) return;
+
+    const saveCurrentGame = async () => {
+      try {
+        const id = await saveGame(gameState, gameState.isGameOver, gameId || undefined);
+        if (!gameId) {
+          setGameId(id);
+        }
+      } catch (error) {
+        console.error('Failed to save game:', error);
+        // Continue without crashing
+      }
+    };
+
+    // Save after a short delay to avoid too many writes
+    const timeoutId = setTimeout(saveCurrentGame, 500);
+    return () => clearTimeout(timeoutId);
+  }, [gameState.moveHistory.length, gameState.isGameOver, gameState.winner]);
 
   const reviewBoard = useMemo(() => {
     if (!reviewMode) return gameState.board;
