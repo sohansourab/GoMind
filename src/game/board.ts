@@ -2,8 +2,9 @@ import { Stone, Position } from './types';
 
 export type Board = readonly Stone[];
 
-export function createEmptyBoard(size: number): Board {
-  return Array(size * size).fill(Stone.EMPTY);
+export function createEmptyBoard(size: number | { size: number }): Board {
+  const actualSize = typeof size === 'number' ? size : size.size;
+  return Array(actualSize * actualSize).fill(Stone.EMPTY);
 }
 
 export function getStone(board: Board, pos: Position, size: number): Stone {
