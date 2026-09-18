@@ -6,10 +6,13 @@ interface GameInfoProps {
   lastMoveMessage: string | null;
   reviewMode: boolean;
   reviewMoveIndex: number;
+  isAiThinking: boolean;
 }
 
-export function GameInfo({ gameState, lastMoveMessage, reviewMode, reviewMoveIndex }: GameInfoProps) {
-  const { currentPlayer, blackCaptures, whiteCaptures, isGameOver, winner, winReason, moveHistory } = gameState;
+export function GameInfo({ gameState, lastMoveMessage, reviewMode, reviewMoveIndex, isAiThinking }: GameInfoProps) {
+  const { currentPlayer, blackCaptures, whiteCaptures, isGameOver, winner, winReason, moveHistory, playerMode } = gameState;
+  const isVsComputer = playerMode === 'human-vs-computer';
+  const isComputerTurn = isVsComputer && currentPlayer === Color.WHITE;
 
   return (
     <div className="game-info">
@@ -17,7 +20,14 @@ export function GameInfo({ gameState, lastMoveMessage, reviewMode, reviewMoveInd
         <div className="turn-indicator">
           <div className={`stone-icon ${currentPlayer === Color.BLACK ? 'black' : 'white'}`} />
           <span className="turn-text">
-            {reviewMode ? 'Review Mode' : `${currentPlayer === Color.BLACK ? 'Black' : 'White'} to play`}
+            {reviewMode
+              ? 'Review Mode'
+              : isAiThinking
+                ? 'Computer thinking...'
+                : isComputerTurn
+                  ? "Computer's turn (White)"
+                  : `${currentPlayer === Color.BLACK ? 'Black' : 'White'} to play`
+            }
           </span>
         </div>
       )}
@@ -36,16 +46,23 @@ export function GameInfo({ gameState, lastMoveMessage, reviewMode, reviewMoveInd
       <div className="captures">
         <div className="capture-item">
           <div className="stone-icon black small" />
-          <span>Black captures: {blackCaptures}</span>
+          <span>
+            Black captures: {blackCaptures}
+            {isVsComputer && ' (You)'}
+          </span>
         </div>
         <div className="capture-item">
           <div className="stone-icon white small" />
-          <span>White captures: {whiteCaptures}</span>
+          <span>
+            White captures: {whiteCaptures}
+            {isVsComputer && ' (Computer)'}
+          </span>
         </div>
       </div>
 
       <div className="move-count">
         Move {moveHistory.length} | Board: {gameState.size}×{gameState.size} | Komi: {gameState.komi}
+        {isVsComputer && ' | vs Computer'}
       </div>
 
       {lastMoveMessage && (

@@ -1,11 +1,13 @@
 /**
  * React hook for managing Go game state.
  * Connects the game engine to the React UI.
+ * Handles AI turns when in human-vs-computer mode.
  */
 
-import { useState, useCallback, useMemo } from 'react';
-import { GameState, GameConfig, Position, ScoreResult, Board } from '../game/types';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { GameState, GameConfig, Position, ScoreResult, Board, Color } from '../game/types';
 import { createGame, playStone, pass, resign, getScore, getBoardAtMove } from '../game/gameState';
+import { chooseMove, shouldPass } from '../game/ai';
 
 export interface UseGoGameReturn {
   gameState: GameState;
@@ -14,6 +16,7 @@ export interface UseGoGameReturn {
   reviewBoard: Board;
   lastMoveMessage: string | null;
   score: ScoreResult | null;
+  isAiThinking: boolean;
   // Actions
   handleIntersectionClick: (pos: Position) => void;
   handlePass: () => void;
@@ -29,6 +32,7 @@ const DEFAULT_CONFIG: GameConfig = {
   size: 9,
   komi: 7.5,
   ruleset: 'chinese',
+  playerMode: 'human-vs-human',
 };
 
 export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
@@ -38,9 +42,62 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
   const [lastMoveMessage, setLastMoveMessage] = useState<string | null>(null);
   const [reviewMode, setReviewMode] = useState(false);
   const [reviewMoveIndex, setReviewMoveIndex] = useState(0);
+  const [isAiThinking, setIsAiThinking] = useState(false);
+  const aiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Check if it's the AI's turn
+  const isAiTurn = useMemo(() => {
+    if (gameState.isGameOver) return false;
+    if (gameState.playerMode !== 'human-vs-computer') return false;
+    // AI plays as White
+    return gameState.currentPlayer === Color.WHITE;
+  }, [gameState.isGameOver, gameState.playerMode, gameState.currentPlayer]);
+
+  // AI turn handler
+  useEffect(() => {
+    if (!isAiTurn || reviewMode) return;
+
+    setIsAiThinking(true);
+
+    // Add a small delay so the AI doesn't play instantly (feels more natural)
+    aiTimeoutRef.current = setTimeout(() => {
+      setGameState(prevState => {
+        if (prevState.isGameOver) return prevState;
+        if (prevState.currentPlayer !== Color.WHITE) return prevState;
+
+        // Check if AI should pass
+        if (shouldPass(prevState)) {
+          const newState = pass(prevState);
+          return newState;
+        }
+
+        // Choose and apply AI move
+        const move = chooseMove(prevState);
+        if (move === null) {
+          // AI passes
+          return pass(prevState);
+        }
+
+        const result = playStone(prevState, move);
+        if (result.success) {
+          return result.newState;
+        }
+
+        // If move fails for some reason, pass instead
+        return pass(prevState);
+      });
+      setIsAiThinking(false);
+    }, 400 + Math.random() * 400); // 400-800ms delay
+
+    return () => {
+      if (aiTimeoutRef.current) {
+        clearTimeout(aiTimeoutRef.current);
+      }
+    };
+  }, [isAiTurn, reviewMode]);
 
   const handleIntersectionClick = useCallback((pos: Position) => {
-    if (reviewMode) return;
+    if (reviewMode || isAiThinking) return;
 
     const result = playStone(gameState, pos);
     if (result.success) {
@@ -51,27 +108,31 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
       // Clear message after 2 seconds
       setTimeout(() => setLastMoveMessage(null), 2000);
     }
-  }, [gameState, reviewMode]);
+  }, [gameState, reviewMode, isAiThinking]);
 
   const handlePass = useCallback(() => {
-    if (reviewMode) return;
+    if (reviewMode || isAiThinking) return;
     const newState = pass(gameState);
     setGameState(newState);
     setLastMoveMessage(null);
-  }, [gameState, reviewMode]);
+  }, [gameState, reviewMode, isAiThinking]);
 
   const handleResign = useCallback(() => {
-    if (reviewMode) return;
+    if (reviewMode || isAiThinking) return;
     const newState = resign(gameState);
     setGameState(newState);
     setLastMoveMessage(null);
-  }, [gameState, reviewMode]);
+  }, [gameState, reviewMode, isAiThinking]);
 
   const handleNewGame = useCallback((config: GameConfig) => {
     setGameState(createGame(config));
     setLastMoveMessage(null);
     setReviewMode(false);
     setReviewMoveIndex(0);
+    setIsAiThinking(false);
+    if (aiTimeoutRef.current) {
+      clearTimeout(aiTimeoutRef.current);
+    }
   }, []);
 
   const handleReviewPrevious = useCallback(() => {
@@ -120,6 +181,7 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
     reviewBoard,
     lastMoveMessage,
     score,
+    isAiThinking,
     handleIntersectionClick,
     handlePass,
     handleResign,

@@ -4,6 +4,7 @@ import { GameState } from '../../game/types';
 interface GameControlsProps {
   gameState: GameState;
   reviewMode: boolean;
+  isAiThinking: boolean;
   onPass: () => void;
   onResign: () => void;
   onNewGame: () => void;
@@ -15,6 +16,7 @@ interface GameControlsProps {
 export function GameControls({
   gameState,
   reviewMode,
+  isAiThinking,
   onPass,
   onResign,
   onNewGame,
@@ -22,6 +24,8 @@ export function GameControls({
   onReviewNext,
   onExitReview,
 }: GameControlsProps) {
+  const controlsDisabled = gameState.isGameOver || reviewMode || isAiThinking;
+
   return (
     <div className="game-controls">
       <button className="btn btn-new-game" onClick={onNewGame}>
@@ -30,10 +34,18 @@ export function GameControls({
 
       {!gameState.isGameOver && !reviewMode && (
         <>
-          <button className="btn btn-pass" onClick={onPass}>
+          <button
+            className="btn btn-pass"
+            onClick={onPass}
+            disabled={isAiThinking}
+          >
             Pass
           </button>
-          <button className="btn btn-resign" onClick={onResign}>
+          <button
+            className="btn btn-resign"
+            onClick={onResign}
+            disabled={isAiThinking}
+          >
             Resign
           </button>
         </>

@@ -18,6 +18,7 @@ export default function App() {
     reviewBoard,
     lastMoveMessage,
     score,
+    isAiThinking,
     handleIntersectionClick,
     handlePass,
     handleResign,
@@ -51,6 +52,7 @@ export default function App() {
   }, [gameState, reviewMode]);
 
   const currentPlayerStone = gameState.currentPlayer === Color.BLACK ? Stone.BLACK : Stone.WHITE;
+  const isVsComputer = gameState.playerMode === 'human-vs-computer';
 
   return (
     <div className="app">
@@ -73,9 +75,17 @@ export default function App() {
               onIntersectionClick={handleIntersectionClick}
               lastMovePosition={lastMovePosition}
               currentPlayer={currentPlayerStone}
-              disabled={gameState.isGameOver || reviewMode}
+              disabled={gameState.isGameOver || reviewMode || isAiThinking}
             />
           </div>
+          {isAiThinking && (
+            <div className="ai-thinking-indicator">
+              <span className="thinking-dots">
+                <span></span><span></span><span></span>
+              </span>
+              Computer is thinking...
+            </div>
+          )}
         </div>
 
         <div className="sidebar">
@@ -84,11 +94,13 @@ export default function App() {
             lastMoveMessage={lastMoveMessage}
             reviewMode={reviewMode}
             reviewMoveIndex={reviewMoveIndex}
+            isAiThinking={isAiThinking}
           />
 
           <GameControls
             gameState={gameState}
             reviewMode={reviewMode}
+            isAiThinking={isAiThinking}
             onPass={handlePass}
             onResign={handleResign}
             onNewGame={() => setShowNewGameDialog(true)}

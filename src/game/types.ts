@@ -51,12 +51,16 @@ export interface GameState {
   readonly winReason: 'resignation' | 'score' | null;
   readonly komi: number;
   readonly ruleset: 'chinese';
+  readonly playerMode: PlayerMode;
 }
+
+export type PlayerMode = 'human-vs-human' | 'human-vs-computer';
 
 export interface GameConfig {
   readonly size: number;
   readonly komi: number;
   readonly ruleset: 'chinese';
+  readonly playerMode?: PlayerMode;
 }
 
 export interface GameResult {

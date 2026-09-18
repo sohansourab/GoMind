@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GameConfig } from '../../game/types';
+import { GameConfig, PlayerMode } from '../../game/types';
 
 interface NewGameDialogProps {
   onNewGame: (config: GameConfig) => void;
@@ -9,12 +9,14 @@ interface NewGameDialogProps {
 export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
   const [size, setSize] = useState<number>(9);
   const [komi, setKomi] = useState<number>(7.5);
+  const [playerMode, setPlayerMode] = useState<PlayerMode>('human-vs-human');
 
   const handleStart = () => {
     onNewGame({
       size,
       komi,
       ruleset: 'chinese',
+      playerMode,
     });
     onClose();
   };
@@ -43,6 +45,45 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
         </div>
 
         <div className="dialog-section">
+          <label className="dialog-label">Players</label>
+          <div className="player-mode-options">
+            <label
+              className={`radio-option ${playerMode === 'human-vs-human' ? 'selected' : ''}`}
+            >
+              <input
+                type="radio"
+                name="playerMode"
+                value="human-vs-human"
+                checked={playerMode === 'human-vs-human'}
+                onChange={() => setPlayerMode('human-vs-human')}
+              />
+              <span className="player-mode-label">
+                <span className="player-icon">👤👤</span>
+                <span>Human vs Human</span>
+              </span>
+            </label>
+            <label
+              className={`radio-option ${playerMode === 'human-vs-computer' ? 'selected' : ''}`}
+            >
+              <input
+                type="radio"
+                name="playerMode"
+                value="human-vs-computer"
+                checked={playerMode === 'human-vs-computer'}
+                onChange={() => setPlayerMode('human-vs-computer')}
+              />
+              <span className="player-mode-label">
+                <span className="player-icon">👤🤖</span>
+                <span>Human vs Computer</span>
+              </span>
+            </label>
+          </div>
+          {playerMode === 'human-vs-computer' && (
+            <p className="dialog-hint">You play as Black (●). Computer plays as White (○).</p>
+          )}
+        </div>
+
+        <div className="dialog-section">
           <label className="dialog-label">Rules</label>
           <div className="rules-display">Chinese (Area Scoring)</div>
         </div>
@@ -58,11 +99,6 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
             max={20}
             onChange={e => setKomi(parseFloat(e.target.value) || 0)}
           />
-        </div>
-
-        <div className="dialog-section">
-          <label className="dialog-label">Players</label>
-          <div className="rules-display">Human vs Human</div>
         </div>
 
         <div className="dialog-actions">

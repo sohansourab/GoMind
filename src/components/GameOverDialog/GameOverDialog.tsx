@@ -9,7 +9,10 @@ interface GameOverDialogProps {
 }
 
 export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOverDialogProps) {
-  const { winner, winReason } = gameState;
+  const { winner, winReason, playerMode } = gameState;
+  const isVsComputer = playerMode === 'human-vs-computer';
+  // Human plays Black, computer plays White
+  const humanWon = winner === Color.BLACK;
 
   return (
     <div className="dialog-overlay" onClick={onClose}>
@@ -20,14 +23,25 @@ export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOve
           {winReason === 'resignation' ? (
             <div className="result-text">
               <span className="winner-announce">
-                {winner === Color.BLACK ? '● Black' : '○ White'} wins
+                {isVsComputer
+                  ? (humanWon ? '🎉 You win!' : 'Computer wins')
+                  : `${winner === Color.BLACK ? '● Black' : '○ White'} wins`
+                }
               </span>
-              <span className="win-method">by resignation</span>
+              <span className="win-method">
+                {isVsComputer
+                  ? (humanWon ? 'Computer resigned' : 'You resigned')
+                  : 'by resignation'
+                }
+              </span>
             </div>
           ) : score ? (
             <div className="result-text">
               <span className="winner-announce">
-                {score.winner === Color.BLACK ? '● Black' : '○ White'} wins
+                {isVsComputer
+                  ? (humanWon ? '🎉 You win!' : 'Computer wins')
+                  : `${score.winner === Color.BLACK ? '● Black' : '○ White'} wins`
+                }
               </span>
               <span className="win-method">
                 by {score.margin} point{score.margin !== 1 ? 's' : ''}
@@ -35,11 +49,11 @@ export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOve
               <div className="final-scores">
                 <div className="final-score-item">
                   <span className="stone-icon black small" />
-                  <span>Black: {score.blackTotal}</span>
+                  <span>{isVsComputer ? 'You' : 'Black'}: {score.blackTotal}</span>
                 </div>
                 <div className="final-score-item">
                   <span className="stone-icon white small" />
-                  <span>White: {score.whiteTotal}</span>
+                  <span>{isVsComputer ? 'Computer' : 'White'}: {score.whiteTotal}</span>
                 </div>
               </div>
             </div>
