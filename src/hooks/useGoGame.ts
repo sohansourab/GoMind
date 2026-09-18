@@ -33,6 +33,7 @@ export interface UseGoGameReturn {
   handlePass: () => void;
   handleResign: () => void;
   handleNewGame: (config: GameConfig) => void;
+  handleLoadGameState: (state: GameState) => void;
   handleReviewPrevious: () => void;
   handleReviewNext: () => void;
   handleReviewJumpTo: (moveIndex: number) => void;
@@ -204,6 +205,19 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
     }
   }, []);
 
+  const handleLoadGameState = useCallback((state: GameState) => {
+    setGameState(state);
+    setLastMoveMessage(null);
+    setReviewMode(false);
+    setReviewMoveIndex(0);
+    setIsAiThinking(false);
+    setAiStatus('idle');
+    setHintPosition(null);
+    if (aiTimeoutRef.current) {
+      clearTimeout(aiTimeoutRef.current);
+    }
+  }, []);
+
   const handleReviewPrevious = useCallback(() => {
     if (!reviewMode) {
       setReviewMode(true);
@@ -302,6 +316,7 @@ export function useGoGame(initialConfig?: GameConfig): UseGoGameReturn {
     handlePass,
     handleResign,
     handleNewGame,
+    handleLoadGameState,
     handleReviewPrevious,
     handleReviewNext,
     handleReviewJumpTo,

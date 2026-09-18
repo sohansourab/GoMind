@@ -1521,3 +1521,98 @@ body {
   background: rgba(244, 67, 54, 0.1);
   border-color: #f44336;
 }
+
+/* === SGF Controls === */
+.sgf-controls {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border);
+}
+
+.btn-sgf {
+  flex: 1;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.85rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.btn-sgf:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.btn-sgf:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* === SGF Import Dialog === */
+.sgf-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.sgf-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--space-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.sgf-textarea:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+
+.file-input {
+  width: 100%;
+  padding: var(--space-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.file-input:hover {
+  border-color: var(--accent-border);
+}
+
+.file-input::file-selector-button {
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  margin-right: var(--space-sm);
+}
+
+.file-input::file-selector-button:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent-border);
+}
+
+.btn-small {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.75rem;
+}

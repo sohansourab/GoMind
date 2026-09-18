@@ -16,6 +16,8 @@ interface GameControlsProps {
   hintPosition?: { x: number; y: number } | null;
   hintsEnabled?: boolean;
   isHumanTurn?: boolean;
+  onExportSgf?: () => void;
+  onImportSgf?: () => void;
 }
 
 export function GameControls({
@@ -33,6 +35,8 @@ export function GameControls({
   hintPosition,
   hintsEnabled = true,
   isHumanTurn = true,
+  onExportSgf,
+  onImportSgf,
 }: GameControlsProps) {
   const showHintButton = hintsEnabled && !gameState.isGameOver && !reviewMode && isHumanTurn && !isAiThinking;
   const hasActiveHint = hintPosition !== null;
@@ -86,6 +90,28 @@ export function GameControls({
         {reviewMode && (
           <button className="btn btn-exit-review" onClick={onExitReview}>
             Exit Review
+          </button>
+        )}
+      </div>
+
+      <div className="sgf-controls">
+        {onExportSgf && (
+          <button
+            className="btn btn-sgf"
+            onClick={onExportSgf}
+            disabled={gameState.moveHistory.length === 0}
+            title="Export game as SGF file"
+          >
+            📥 Export SGF
+          </button>
+        )}
+        {onImportSgf && (
+          <button
+            className="btn btn-sgf"
+            onClick={onImportSgf}
+            title="Import game from SGF file"
+          >
+            📤 Import SGF
           </button>
         )}
       </div>
