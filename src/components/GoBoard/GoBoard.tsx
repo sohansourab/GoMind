@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Stone, Position } from '../../game/types';
 import { BoardGrid } from './BoardGrid';
 import { StoneComponent } from './Stone';
@@ -92,7 +92,10 @@ export function GoBoard({
 
   // Track which stones are "new" (just placed) for animation
   const prevBoardRef = useRef<readonly Stone[]>(board);
-  const newStones = useMemo(() => {
+  const [newStones, setNewStones] = useState<Set<string>>(new Set());
+
+  // Calculate new stones and update ref in useEffect (not useMemo)
+  useEffect(() => {
     const newOnes = new Set<string>();
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
@@ -102,9 +105,15 @@ export function GoBoard({
         }
       }
     }
-    // Update ref after computing
-    setTimeout(() => { prevBoardRef.current = board; }, 200);
-    return newOnes;
+    setNewStones(newOnes);
+    
+    // Update ref after a delay to allow animation to complete
+    const timeoutId = setTimeout(() => {
+      prevBoardRef.current = board;
+    }, 200);
+    
+    // Cleanup timeout on unmount or when board changes
+    return () => clearTimeout(timeoutId);
   }, [board, size]);
 
   // Render stones
