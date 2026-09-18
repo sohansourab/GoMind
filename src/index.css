@@ -627,6 +627,7 @@ body {
   z-index: 100;
   padding: var(--space-md);
   animation: fadeIn 200ms ease;
+  overflow: hidden;
 }
 
 @keyframes fadeIn {
@@ -643,6 +644,35 @@ body {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   animation: dialogSlideIn 250ms ease;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dialog-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+  margin: 0 -4px;
+}
+
+.dialog-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dialog-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dialog-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.dialog-content::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light);
 }
 
 @keyframes dialogSlideIn {
@@ -663,6 +693,7 @@ body {
   margin-bottom: var(--space-lg);
   color: var(--text-primary);
   letter-spacing: 0.05em;
+  flex-shrink: 0;
 }
 
 .dialog-section {
@@ -743,6 +774,9 @@ body {
   justify-content: flex-end;
   gap: var(--space-sm);
   margin-top: var(--space-lg);
+  flex-shrink: 0;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border);
 }
 
 .game-over-result {

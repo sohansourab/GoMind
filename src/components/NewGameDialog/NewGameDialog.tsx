@@ -30,6 +30,15 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
   const [playerMode, setPlayerMode] = useState<PlayerMode>('human-vs-human');
   const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>('medium');
 
+  // Lock body scroll when modal is open
+  React.useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const handleStart = () => {
     onNewGame({
       size,
@@ -46,105 +55,107 @@ export function NewGameDialog({ onNewGame, onClose }: NewGameDialogProps) {
       <div className="dialog" onClick={e => e.stopPropagation()}>
         <h2>New Game</h2>
 
-        <div className="dialog-section">
-          <label className="dialog-label">Board</label>
-          <div className="board-size-options">
-            {[9, 13, 19].map(s => (
-              <label key={s} className={`radio-option ${size === s ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="boardSize"
-                  value={s}
-                  checked={size === s}
-                  onChange={() => setSize(s)}
-                />
-                <span>{s}×{s}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="dialog-section">
-          <label className="dialog-label">Players</label>
-          <div className="player-mode-options">
-            <label
-              className={`radio-option ${playerMode === 'human-vs-human' ? 'selected' : ''}`}
-            >
-              <input
-                type="radio"
-                name="playerMode"
-                value="human-vs-human"
-                checked={playerMode === 'human-vs-human'}
-                onChange={() => setPlayerMode('human-vs-human')}
-              />
-              <span>Human vs Human</span>
-            </label>
-            <label
-              className={`radio-option ${playerMode === 'human-vs-computer' ? 'selected' : ''}`}
-            >
-              <input
-                type="radio"
-                name="playerMode"
-                value="human-vs-computer"
-                checked={playerMode === 'human-vs-computer'}
-                onChange={() => setPlayerMode('human-vs-computer')}
-              />
-              <span>Human vs Computer</span>
-            </label>
-          </div>
-          {playerMode === 'human-vs-computer' && (
-            <p className="dialog-hint">You play as Black (●). Computer plays as White (○).</p>
-          )}
-        </div>
-
-        {playerMode === 'human-vs-computer' && (
+        <div className="dialog-content">
           <div className="dialog-section">
-            <label className="dialog-label">Difficulty</label>
-            <div className="difficulty-options">
-              {(['easy', 'medium', 'hard'] as AiDifficulty[]).map(diff => {
-                const info = DIFFICULTY_INFO[diff];
-                return (
-                  <label
-                    key={diff}
-                    className={`difficulty-option ${aiDifficulty === diff ? 'selected' : ''} difficulty-${diff}`}
-                  >
-                    <input
-                      type="radio"
-                      name="difficulty"
-                      value={diff}
-                      checked={aiDifficulty === diff}
-                      onChange={() => setAiDifficulty(diff)}
-                    />
-                    <div className="difficulty-content">
-                      <span className="difficulty-emoji">{info.emoji}</span>
-                      <div className="difficulty-text">
-                        <span className="difficulty-name">{info.label}</span>
-                        <span className="difficulty-desc">{info.description}</span>
-                      </div>
-                    </div>
-                  </label>
-                );
-              })}
+            <label className="dialog-label">Board</label>
+            <div className="board-size-options">
+              {[9, 13, 19].map(s => (
+                <label key={s} className={`radio-option ${size === s ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="boardSize"
+                    value={s}
+                    checked={size === s}
+                    onChange={() => setSize(s)}
+                  />
+                  <span>{s}×{s}</span>
+                </label>
+              ))}
             </div>
           </div>
-        )}
 
-        <div className="dialog-section">
-          <label className="dialog-label">Rules</label>
-          <div className="rules-display">Chinese (Area Scoring)</div>
-        </div>
+          <div className="dialog-section">
+            <label className="dialog-label">Players</label>
+            <div className="player-mode-options">
+              <label
+                className={`radio-option ${playerMode === 'human-vs-human' ? 'selected' : ''}`}
+              >
+                <input
+                  type="radio"
+                  name="playerMode"
+                  value="human-vs-human"
+                  checked={playerMode === 'human-vs-human'}
+                  onChange={() => setPlayerMode('human-vs-human')}
+                />
+                <span>Human vs Human</span>
+              </label>
+              <label
+                className={`radio-option ${playerMode === 'human-vs-computer' ? 'selected' : ''}`}
+              >
+                <input
+                  type="radio"
+                  name="playerMode"
+                  value="human-vs-computer"
+                  checked={playerMode === 'human-vs-computer'}
+                  onChange={() => setPlayerMode('human-vs-computer')}
+                />
+                <span>Human vs Computer</span>
+              </label>
+            </div>
+            {playerMode === 'human-vs-computer' && (
+              <p className="dialog-hint">You play as Black (●). Computer plays as White (○).</p>
+            )}
+          </div>
 
-        <div className="dialog-section">
-          <label className="dialog-label">Komi</label>
-          <input
-            type="number"
-            className="komi-input"
-            value={komi}
-            step={0.5}
-            min={0}
-            max={20}
-            onChange={e => setKomi(parseFloat(e.target.value) || 0)}
-          />
+          {playerMode === 'human-vs-computer' && (
+            <div className="dialog-section">
+              <label className="dialog-label">Difficulty</label>
+              <div className="difficulty-options">
+                {(['easy', 'medium', 'hard'] as AiDifficulty[]).map(diff => {
+                  const info = DIFFICULTY_INFO[diff];
+                  return (
+                    <label
+                      key={diff}
+                      className={`difficulty-option ${aiDifficulty === diff ? 'selected' : ''} difficulty-${diff}`}
+                    >
+                      <input
+                        type="radio"
+                        name="difficulty"
+                        value={diff}
+                        checked={aiDifficulty === diff}
+                        onChange={() => setAiDifficulty(diff)}
+                      />
+                      <div className="difficulty-content">
+                        <span className="difficulty-emoji">{info.emoji}</span>
+                        <div className="difficulty-text">
+                          <span className="difficulty-name">{info.label}</span>
+                          <span className="difficulty-desc">{info.description}</span>
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="dialog-section">
+            <label className="dialog-label">Rules</label>
+            <div className="rules-display">Chinese (Area Scoring)</div>
+          </div>
+
+          <div className="dialog-section">
+            <label className="dialog-label">Komi</label>
+            <input
+              type="number"
+              className="komi-input"
+              value={komi}
+              step={0.5}
+              min={0}
+              max={20}
+              onChange={e => setKomi(parseFloat(e.target.value) || 0)}
+            />
+          </div>
         </div>
 
         <div className="dialog-actions">

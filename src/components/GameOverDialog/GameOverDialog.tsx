@@ -13,12 +13,22 @@ export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOve
   const isVsComputer = playerMode === 'human-vs-computer';
   const humanWon = winner === Color.BLACK;
 
+  // Lock body scroll when modal is open
+  React.useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   return (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog game-over-dialog" onClick={e => e.stopPropagation()}>
         <h2>Game Over</h2>
 
-        <div className="game-over-result">
+        <div className="dialog-content">
+          <div className="game-over-result">
           {winReason === 'resignation' ? (
             <div className="result-text">
               <span className="winner-announce">
@@ -57,6 +67,7 @@ export function GameOverDialog({ gameState, score, onNewGame, onClose }: GameOve
               </div>
             </div>
           ) : null}
+        </div>
         </div>
 
         <div className="dialog-actions">
