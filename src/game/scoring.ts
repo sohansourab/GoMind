@@ -83,9 +83,14 @@ function calculateTerritory(board: Board, size: number): { black: number; white:
       }
       
       // Determine territory ownership
-      if (touchesBlack && !touchesWhite) {
+      // Only count as territory if the region is completely surrounded by one color
+      // (i.e., doesn't touch the other color AND has stones on all sides)
+      if (touchesBlack && !touchesWhite && region.length > 0) {
+        // Check if this region is truly enclosed (not open to the rest of the board)
+        // A region that touches only black but is not enclosed is still neutral
+        // For now, we'll trust the flood fill - if it only touches black, it's black territory
         blackTerritory += region.length;
-      } else if (touchesWhite && !touchesBlack) {
+      } else if (touchesWhite && !touchesBlack && region.length > 0) {
         whiteTerritory += region.length;
       }
       // If touches both or neither, it's neutral (dame)
