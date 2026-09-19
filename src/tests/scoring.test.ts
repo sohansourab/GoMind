@@ -28,24 +28,31 @@ describe('Scoring (Chinese Area)', () => {
   });
 
   it('identifies simple territory', () => {
-    // Black surrounds the top-left corner
-    // . . . . .
-    // . . . . .
-    // . . B B B
-    // . . B . .
-    // . . B . .
-    // Actually let me use a simpler enclosed territory
+    // Create a completely enclosed region using the board edges
+    // On a 5x5 board, black forms an L-shape in the corner:
+    // B B B B B
+    // B . . . B
+    // B . . . B
+    // B . . . B
+    // B B B B B
+    // This encloses the 3x3 area in the middle
     
-    // On a 9x9 board, black surrounds corner (0,0):
-    // Black at (1,0), (0,1) - this encloses (0,0) as black territory
-    let board = createEmptyBoard({ size: 9 });
-    board = setStone(board, { x: 1, y: 0 }, 9, Stone.BLACK);
-    board = setStone(board, { x: 0, y: 1 }, 9, Stone.BLACK);
+    let board = createEmptyBoard({ size: 5 });
+    // Create a ring using board edges - top and bottom rows
+    for (let x = 0; x < 5; x++) {
+      board = setStone(board, { x, y: 0 }, 5, Stone.BLACK);
+      board = setStone(board, { x, y: 4 }, 5, Stone.BLACK);
+    }
+    // Left and right columns (excluding corners already set)
+    for (let y = 1; y <= 3; y++) {
+      board = setStone(board, { x: 0, y }, 5, Stone.BLACK);
+      board = setStone(board, { x: 4, y }, 5, Stone.BLACK);
+    }
     
-    const score = calculateScore(board, 9, 0);
-    expect(score.blackStones).toBe(2);
-    expect(score.blackTerritory).toBe(1); // (0,0) is black territory
-    expect(score.blackTotal).toBe(3);
+    const score = calculateScore(board, 5, 0);
+    expect(score.blackStones).toBe(16);
+    expect(score.blackTerritory).toBe(9); // 3x3 area inside is black territory
+    expect(score.whiteTerritory).toBe(0);
   });
 
   it('identifies neutral (dame) points', () => {

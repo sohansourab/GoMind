@@ -1,18 +1,17 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useGoGame } from './hooks/useGoGame';
 import { GoBoard } from './components/GoBoard/GoBoard';
 import { GameControls } from './components/GameControls/GameControls';
+import { GameStatus } from './components/GameStatus/GameStatus';
+import { PlayerPanel } from './components/PlayerPanel/PlayerPanel';
 import { MoveHistory } from './components/MoveHistory/MoveHistory';
 import { ScorePanel } from './components/ScorePanel/ScorePanel';
 import { NewGameDialog } from './components/NewGameDialog/NewGameDialog';
 import { GameOverDialog } from './components/GameOverDialog/GameOverDialog';
 import { Rulebook } from './components/Rulebook/Rulebook';
-import { PlayerPanel } from './components/PlayerPanel/PlayerPanel';
-import { GameStatus } from './components/GameStatus/GameStatus';
-import { SgfImportDialog } from './components/SgfImportDialog/SgfImportDialog';
 import { GameLibrary } from './components/GameLibrary';
-import { Stone, Color, Position, GameState } from './game/types';
-import { getLastMove } from './game/gameState';
+import { SgfImportDialog } from './components/SgfImportDialog/SgfImportDialog';
+import { Color, Stone } from './game/types';
 import { downloadSgf } from './sgf';
 
 export default function App() {
@@ -42,7 +41,8 @@ export default function App() {
   const [showSgfImportDialog, setShowSgfImportDialog] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
 
-  React.useEffect(() => {
+  // Show game over dialog when game ends
+  useEffect(() => {
     if (gameState.isGameOver && !gameOverShown) {
       setShowGameOverDialog(true);
       setGameOverShown(true);
@@ -52,43 +52,28 @@ export default function App() {
     }
   }, [gameState.isGameOver, gameOverShown]);
 
-  const handleExportSgf = useCallback(() => {
+  const handleExportSgf = () => {
     downloadSgf(gameState);
-  }, [gameState]);
+  };
 
-  const handleImportSgf = useCallback((state: GameState) => {
+  const handleImportSgf = (state: any) => {
     handleLoadGameState(state);
     setShowSgfImportDialog(false);
-  }, [handleLoadGameState]);
+  };
 
-  const handleContinueGame = useCallback((state: GameState, gameId: string) => {
-    handleLoadGameState(state);
-    setShowLibrary(false);
-  }, [handleLoadGameState]);
-
-  const handleReviewGame = useCallback((state: GameState, gameId: string) => {
-    handleLoadGameState(state);
-    setShowLibrary(false);
-    // Enter review mode automatically
-    // The review mode will be handled by the existing review functionality
-  }, [handleLoadGameState]);
-
-  const lastMovePosition = useMemo((): Position | null => {
-    if (reviewMode) return null;
-    const lastMove = getLastMove(gameState);
-    if (!lastMove || lastMove.type !== 'play') return null;
-    return lastMove.position;
-  }, [gameState, reviewMode]);
-
+  const lastMovePosition = gameState.moveHistory.length > 0 
+    ? gameState.moveHistory[gameState.moveHistory.length - 1].position 
+    : null;
   const currentPlayerStone = gameState.currentPlayer === Color.BLACK ? Stone.BLACK : Stone.WHITE;
+  const isVsComputer = gameState.playerMode === 'human-vs-computer';
 
   return (
     <div className="app">
       <header className="app-header">
-        <div className="app-title">
-          <span className="title-go">Satori</span>
+        <h1 className="app-title">
+          <span className="title-go">SATORI</span>
           <span className="title-subtitle">The Game of Go</span>
-        </div>
+        </h1>
         <div className="header-actions">
           <span className="board-size-badge">{gameState.size}×{gameState.size}</span>
           <button className="btn btn-header" onClick={() => setShowLibrary(true)}>
@@ -138,13 +123,14 @@ export default function App() {
           {/* Player Panels */}
           <PlayerPanel
             color={Color.BLACK}
-            label="Black"
+            label={isVsComputer ? 'You' : 'Black'}
             captures={gameState.blackCaptures}
             isActive={!gameState.isGameOver && gameState.currentPlayer === Color.BLACK && !reviewMode}
+            isThinking={isAiThinking && gameState.currentPlayer === Color.BLACK}
           />
           <PlayerPanel
             color={Color.WHITE}
-            label={gameState.playerMode === 'human-vs-computer' ? 'Computer' : 'White'}
+            label={isVsComputer ? 'Satori AI' : 'White'}
             captures={gameState.whiteCaptures}
             isActive={!gameState.isGameOver && gameState.currentPlayer === Color.WHITE && !reviewMode}
             isThinking={isAiThinking && gameState.currentPlayer === Color.WHITE}
@@ -234,8 +220,14 @@ export default function App() {
 
       {showLibrary && (
         <GameLibrary
-          onContinueGame={handleContinueGame}
-          onReviewGame={handleReviewGame}
+          onContinueGame={(state, id) => {
+            handleLoadGameState(state);
+            setShowLibrary(false);
+          }}
+          onReviewGame={(state, id) => {
+            handleLoadGameState(state);
+            setShowLibrary(false);
+          }}
           onClose={() => setShowLibrary(false)}
         />
       )}

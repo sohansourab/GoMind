@@ -1,123 +1,101 @@
-/**
- * Chinese-style area scoring for Go.
- * 
- * In Chinese scoring:
- * - A player's score = stones on board + territory (empty points surrounded)
- * - Komi is added to White's score
- * 
- * Territory determination:
- * An empty point belongs to a player if it is only adjacent (via empty paths)
- * to stones of that player's color. If an empty region is adjacent to both
- * colors, it is neutral (dame).
- */
-
-import { Stone, Color, Position, Board, ScoreResult } from './types';
-import { getStone, getNeighbors } from './board';
+import { Stone, Color, Position, ScoreResult } from './types';
+import { Board, getStone, getNeighbors } from './board';
 
 /**
- * Find all empty regions on the board and determine their ownership.
- * An empty region is owned by a color if all stones adjacent to it are of that color.
- * If adjacent to both colors or neither, it's neutral (dame).
- */
-function findTerritory(board: Board, size: number): {
-  blackTerritory: Position[];
-  whiteTerritory: Position[];
-  neutralPoints: Position[];
-} {
-  const visited = new Set<string>();
-  const blackTerritory: Position[] = [];
-  const whiteTerritory: Position[] = [];
-  const neutralPoints: Position[] = [];
-  const posKey = (p: Position) => `${p.x},${p.y}`;
-
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const pos = { x, y };
-      const key = posKey(pos);
-      if (visited.has(key)) continue;
-
-      const stone = getStone(board, pos, size);
-      if (stone !== Stone.EMPTY) continue;
-
-      // BFS to find the entire empty region
-      const region: Position[] = [];
-      const queue: Position[] = [pos];
-      const regionVisited = new Set<string>();
-      regionVisited.add(key);
-
-      let adjacentToBlack = false;
-      let adjacentToWhite = false;
-
-      while (queue.length > 0) {
-        const current = queue.shift()!;
-        region.push(current);
-
-        for (const neighbor of getNeighbors(current, size)) {
-          const nStone = getStone(board, neighbor, size);
-          if (nStone === Stone.BLACK) {
-            adjacentToBlack = true;
-          } else if (nStone === Stone.WHITE) {
-            adjacentToWhite = true;
-          } else {
-            const nKey = posKey(neighbor);
-            if (!regionVisited.has(nKey)) {
-              regionVisited.add(nKey);
-              queue.push(neighbor);
-            }
-          }
-        }
-      }
-
-      // Mark all positions in region as visited
-      for (const p of region) {
-        visited.add(posKey(p));
-      }
-
-      // Determine ownership
-      if (adjacentToBlack && !adjacentToWhite) {
-        blackTerritory.push(...region);
-      } else if (adjacentToWhite && !adjacentToBlack) {
-        whiteTerritory.push(...region);
-      } else {
-        neutralPoints.push(...region);
-      }
-    }
-  }
-
-  return { blackTerritory, whiteTerritory, neutralPoints };
-}
-
-/**
- * Count stones of a given color on the board.
- */
-function countStones(board: Board, color: Stone): number {
-  return board.filter(s => s === color).length;
-}
-
-/**
- * Calculate the final score using Chinese area scoring.
+ * Calculate score using Chinese area scoring rules.
+ * Score = stones on board + territory enclosed
  */
 export function calculateScore(board: Board, size: number, komi: number): ScoreResult {
-  const blackStones = countStones(board, Stone.BLACK);
-  const whiteStones = countStones(board, Stone.WHITE);
-
-  const { blackTerritory, whiteTerritory } = findTerritory(board, size);
-
-  const blackTotal = blackStones + blackTerritory.length;
-  const whiteTotal = whiteStones + whiteTerritory.length + komi;
-
+  const territory = calculateTerritory(board, size);
+  
+  let blackStones = 0;
+  let whiteStones = 0;
+  
+  for (let i = 0; i < board.length; i++) {
+    if (board[i] === Stone.BLACK) blackStones++;
+    if (board[i] === Stone.WHITE) whiteStones++;
+  }
+  
+  const blackTotal = blackStones + territory.black;
+  const whiteTotal = whiteStones + territory.white + komi;
+  
   const winner = blackTotal > whiteTotal ? Color.BLACK : Color.WHITE;
   const margin = Math.abs(blackTotal - whiteTotal);
-
+  
   return {
     blackStones,
     whiteStones,
-    blackTerritory: blackTerritory.length,
-    whiteTerritory: whiteTerritory.length,
+    blackTerritory: territory.black,
+    whiteTerritory: territory.white,
     komi,
     blackTotal,
     whiteTotal,
     winner,
     margin,
   };
+}
+
+function calculateTerritory(board: Board, size: number): { black: number; white: number } {
+  const visited = new Set<string>();
+  let blackTerritory = 0;
+  let whiteTerritory = 0;
+  
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const pos = { x, y };
+      const key = `${x},${y}`;
+      
+      if (visited.has(key)) continue;
+      if (getStone(board, pos, size) !== Stone.EMPTY) continue;
+      
+      // Found an empty point, flood fill to find the entire empty region
+      const region: Position[] = [];
+      const queue: Position[] = [pos];
+      const regionVisited = new Set<string>();
+      
+      let touchesBlack = false;
+      let touchesWhite = false;
+      
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        const currentKey = `${current.x},${current.y}`;
+        
+        if (regionVisited.has(currentKey)) continue;
+        regionVisited.add(currentKey);
+        visited.add(currentKey);
+        
+        const stone = getStone(board, current, size);
+        
+        if (stone === Stone.EMPTY) {
+          region.push(current);
+          
+          for (const neighbor of getNeighbors(current, size)) {
+            const neighborKey = `${neighbor.x},${neighbor.y}`;
+            if (!regionVisited.has(neighborKey)) {
+              queue.push(neighbor);
+            }
+          }
+        } else if (stone === Stone.BLACK) {
+          touchesBlack = true;
+        } else if (stone === Stone.WHITE) {
+          touchesWhite = true;
+        }
+      }
+      
+      // Determine territory ownership
+      // Only count as territory if the region is completely surrounded by one color
+      // (i.e., doesn't touch the other color AND has stones on all sides)
+      if (touchesBlack && !touchesWhite && region.length > 0) {
+        // Check if this region is truly enclosed (not open to the rest of the board)
+        // A region that touches only black but is not enclosed is still neutral
+        // For now, we'll trust the flood fill - if it only touches black, it's black territory
+        blackTerritory += region.length;
+      } else if (touchesWhite && !touchesBlack && region.length > 0) {
+        whiteTerritory += region.length;
+      }
+      // If touches both or neither, it's neutral (dame)
+    }
+  }
+  
+  return { black: blackTerritory, white: whiteTerritory };
 }

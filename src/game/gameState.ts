@@ -1,24 +1,12 @@
-/**
- * Game state management.
- * Creates initial game state and provides state transition functions.
- */
-
-import { Color, GameState, GameConfig, Move, Board, Stone, Position, MoveResult, ScoreResult } from './types';
+import { GameState, GameConfig, Color, Position, MoveResult, Move, Stone } from './types';
 import { createEmptyBoard, setStone } from './board';
 import { applyMove, applyPass, applyResign } from './rules';
 import { calculateScore } from './scoring';
 import { captureOpponentGroups } from './capture';
 
-/**
- * Create a new game with the given configuration.
- */
 export function createGame(config: GameConfig): GameState {
-  const board = createEmptyBoard({ size: config.size });
-  const playerMode = config.playerMode || 'human-vs-human';
-  const aiDifficulty = config.aiDifficulty || 'medium';
-
   return {
-    board,
+    board: createEmptyBoard(config.size),
     size: config.size,
     currentPlayer: Color.BLACK,
     moveHistory: [],
@@ -31,67 +19,52 @@ export function createGame(config: GameConfig): GameState {
     winReason: null,
     komi: config.komi,
     ruleset: config.ruleset,
-    playerMode,
-    aiDifficulty,
+    playerMode: config.playerMode || 'human-vs-human',
+    aiDifficulty: config.aiDifficulty || 'medium',
   };
 }
 
-/**
- * Attempt to play a stone at the given position.
- */
 export function playStone(state: GameState, pos: Position): MoveResult {
   return applyMove(state, pos);
 }
 
-/**
- * Pass the current turn.
- */
 export function pass(state: GameState): GameState {
   return applyPass(state);
 }
 
-/**
- * Resign the game.
- */
 export function resign(state: GameState): GameState {
   return applyResign(state);
 }
 
-/**
- * Get the score when the game is over (two consecutive passes).
- */
-export function getScore(state: GameState): ScoreResult {
+export function getScore(state: GameState) {
   return calculateScore(state.board, state.size, state.komi);
 }
 
-/**
- * Reconstruct a board state at a specific move number.
- * Replays the game from the beginning up to the given move.
- */
-export function getBoardAtMove(state: GameState, moveNumber: number): Board {
-  if (moveNumber === 0) {
-    return createEmptyBoard({ size: state.size });
+export function getLastMove(state: GameState): Move | null {
+  if (state.moveHistory.length === 0) {
+    return null;
   }
+  return state.moveHistory[state.moveHistory.length - 1];
+}
 
-  let board = createEmptyBoard({ size: state.size });
-
-  for (let i = 0; i < moveNumber && i < state.moveHistory.length; i++) {
+export function getBoardAtMove(state: GameState, moveIndex: number): readonly Stone[] {
+  if (moveIndex === 0) {
+    return createEmptyBoard(state.size);
+  }
+  
+  let board = createEmptyBoard(state.size);
+  
+  for (let i = 0; i < moveIndex && i < state.moveHistory.length; i++) {
     const move = state.moveHistory[i];
     if (move.type === 'play' && move.position) {
       const stoneColor = move.color === Color.BLACK ? Stone.BLACK : Stone.WHITE;
       board = setStone(board, move.position, state.size, stoneColor);
-      const result = captureOpponentGroups(board, move.position, stoneColor, state.size);
-      board = result.board;
+      
+      // Handle captures
+      const captureResult = captureOpponentGroups(board, move.position, stoneColor, state.size);
+      board = captureResult.board;
     }
   }
-
+  
   return board;
-}
-
-/**
- * Get the last move in the history.
- */
-export function getLastMove(state: GameState): Move | null {
-  if (state.moveHistory.length === 0) return null;
-  return state.moveHistory[state.moveHistory.length - 1];
 }

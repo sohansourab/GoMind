@@ -389,15 +389,27 @@ SZ[9]
     it('should create downloadable SGF file', () => {
       const state = createGame({ size: 9, komi: 6.5, ruleset: 'chinese' });
       
-      // Mock document.createElement
+      // Mock document.createElement to return a mock anchor element
       const mockLink = {
         href: '',
         download: '',
-        click: () => {},
+        click: vi.fn(),
+        setAttribute: vi.fn(),
       };
       
       const originalCreateElement = document.createElement;
-      document.createElement = vi.fn(() => mockLink as any);
+      document.createElement = vi.fn((tagName: string) => {
+        if (tagName === 'a') {
+          return mockLink as any;
+        }
+        return originalCreateElement.call(document, tagName);
+      });
+      
+      // Mock document.body.appendChild and removeChild
+      const originalAppendChild = document.body.appendChild;
+      const originalRemoveChild = document.body.removeChild;
+      (document.body as any).appendChild = vi.fn((node: any) => node);
+      (document.body as any).removeChild = vi.fn((node: any) => node);
       
       const originalCreateObjectURL = URL.createObjectURL;
       URL.createObjectURL = vi.fn(() => 'blob:test');
@@ -409,9 +421,12 @@ SZ[9]
       
       expect(mockLink.download).toBe('test.sgf');
       expect(mockLink.href).toBe('blob:test');
+      expect(mockLink.click).toHaveBeenCalled();
       
       // Restore
       document.createElement = originalCreateElement;
+      (document.body as any).appendChild = originalAppendChild;
+      (document.body as any).removeChild = originalRemoveChild;
       URL.createObjectURL = originalCreateObjectURL;
       URL.revokeObjectURL = originalRevokeObjectURL;
     });
